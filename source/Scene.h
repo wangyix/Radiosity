@@ -1,14 +1,16 @@
 #pragma once
 
 #include "glincludes.h"
-#include "ShaderOneInterface.h"
+#include "SceneShaderInterface.h"
+#include "Quad.h"
 
 #include <stdio.h>
 
 class Scene {
 private:
 
-	ShaderOneInterface *soi;
+	SceneShaderInterface *ssi;
+
 
 public:
 
