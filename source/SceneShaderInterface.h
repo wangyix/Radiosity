@@ -27,6 +27,7 @@ public:
 	
 	int init();
 	void setModelViewProj(const glm::mat4 &modelViewProj);
+	void setTexture(GLuint texture);
 	void draw();
 	void close();
 	
@@ -37,10 +38,4 @@ private:
 		int numIndices, const unsigned short *indices);
 
 	void bindProgram();
-	
-	void setTexture(GLuint texture);
-	
-
-	
-	
 };

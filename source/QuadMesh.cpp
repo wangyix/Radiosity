@@ -39,6 +39,12 @@ QuadMesh::QuadMesh()
 	quads[4].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
 	quads[5].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
 
+	quads[0].setReflectance(glm::vec3(1.0f,0.0f,0.0f));
+	quads[1].setReflectance(glm::vec3(0.0f,1.0f,0.0f));
+	quads[2].setReflectance(glm::vec3(0.0f,0.0f,1.0f));
+	quads[3].setReflectance(glm::vec3(1.0f,1.0f,0.0f));
+	quads[4].setReflectance(glm::vec3(0.0f,1.0f,1.0f));
+	quads[5].setReflectance(glm::vec3(1.0f,0.0f,1.0f));
 
 }
 /*

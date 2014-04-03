@@ -29,12 +29,6 @@ void TimerFunction(int);
 void IdleFunction(void);
 void KeyboardFunction(unsigned char, int, int);
 void Cleanup(void);
-/*
-void CreateVBO(void);
-void DestroyVBO(void);
-void CreateShaders(void);
-void DestroyShaders(void);
-*/
 
 
 
@@ -78,12 +72,17 @@ void Initialize(int argc, char* argv[])
 	scene = new Scene();
 	scene->init();
 
-	/*
-	CreateShaders();
-	CreateVBO();
-	*/
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	/*
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+	*/
 }
+
 
 void InitWindow(int argc, char* argv[])
 {
@@ -105,10 +104,7 @@ void InitWindow(int argc, char* argv[])
 	WindowHandle = glutCreateWindow(WINDOW_TITLE_PREFIX);
 
 	if(WindowHandle < 1) {
-		fprintf(
-			stderr,
-			"ERROR: Could not create a new rendering window.\n"
-		);
+		fprintf(stderr, "ERROR: Could not create a new rendering window.\n");
 		exit(EXIT_FAILURE);
 	}
 	

@@ -16,7 +16,7 @@ int Scene::init() {
 	}
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
-	camera.setPosition(glm::vec3(5.0f, 5.0f, 5.0f));
+	camera.setPosition(glm::vec3(5.0f, 3.0f, 4.0f));
 	camera.lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
 	return 0;
@@ -35,10 +35,9 @@ void Scene::update(double delta) {
 void Scene::render() {
 
 	for (int i=0; i<quadMesh->numQuads; ++i) {
-		if (i==2) {
 		ssi->setModelViewProj(camera.getViewProj() * quadMesh->quads[i].getModel());
+		ssi->setTexture(quadMesh->quads[i].getRadiosityTex());
 		ssi->draw();
-		}
 	}
 }
 

@@ -13,18 +13,21 @@ Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 	float *initialPixels = new float[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
 	memset(initialPixels, 0, sizeof(initialPixels));
 
+
 	// FOR TESTING!!!!!!!!!!!!
-	for (int i=0; i<RAD_TEX_WIDTH; ++i) {
-		for (int j=0; j<RAD_TEX_HEIGHT; ++j) {
-			int base = 3*i*j;
+	static float t = -0.2f;
+	t += 0.2f;
+	for (int i=0; i<RAD_TEX_HEIGHT; ++i) {
+		for (int j=0; j<RAD_TEX_WIDTH; ++j) {
+			int base = 3 * (i*RAD_TEX_WIDTH + j);
 			if ( (i/4 + j/4)%2==0 ) { 
-				initialPixels[base] = 0.0f;
+				initialPixels[base] = 1.0f;
 				initialPixels[base+1] = 1.0f;
-				initialPixels[base+2] = 0.0f;
+				initialPixels[base+2] = 1.0f;
 			} else {
 				initialPixels[base] = 0.0f;
-				initialPixels[base+1] = 0.0f;
-				initialPixels[base+2] = 1.0f;
+				initialPixels[base+1] = t;
+				initialPixels[base+2] = 0.0f;
 			}
 		}
 	}
@@ -89,6 +92,7 @@ Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 		0, GL_RGB, GL_FLOAT, initialPixels);
 
 
+	delete initialPixels;
 }
 
 Quad::~Quad() {
@@ -105,10 +109,11 @@ void Quad::setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLe
 	glm::vec3 v = topLeft - bottomLeft;
 	glm::vec3 n = glm::normalize(glm::cross(u, v));
 
-	model = glm::mat4(	u.x,	v.x,	n.x,	bottomLeft.x,
-						u.y,	v.y,	n.y,	bottomLeft.y,
-						u.z,	v.z,	n.z,	bottomLeft.z,
-						0.0f,	0.0f,	0.0f,	1.0f
+	// constructor order is tranposed
+	model = glm::mat4(	u.x,	u.y,	u.z,	0.0f,
+						v.x,	v.y,	v.z,	0.0f,
+						n.x,	n.y,	n.z,	0.0f,
+						bottomLeft.x,	bottomLeft.y,	bottomLeft.z,	1.0f
 					);
 }
 

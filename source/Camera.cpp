@@ -100,26 +100,16 @@ void Camera::orthonormalize() {
 
 
 glm::mat4 Camera::getViewProj() const {
-	/*
+	
 	float tR = -glm::dot(position, right);
 	float tU = -glm::dot(position, up);
 	float tL = -glm::dot(position, lookNeg);
-
-	glm::mat4 view(	right.x,	right.y,	right.z,	tR,
-					up.x,		up.y,		up.z,		tU,
-					lookNeg.x,	lookNeg.y,	lookNeg.z,	tL,
-					0.0f,		0.0f,		0.0f,		1.0f );
+	
+	// constructor order is tranposed 
+	glm::mat4 view(	right.x,	up.x,	lookNeg.x,	0.0f,
+					right.y,	up.y,	lookNeg.y,	0.0f,
+					right.z,	up.z,	lookNeg.z,	0.0f,
+					tR,			tU,		tL,			1.0f );
 
 	return proj * view;
-	*/
-
-	//test
-	glm::mat4 t = glm::lookAt(glm::vec3(5.0f,5.0f,5.0f),
-					glm::vec3(6.0f, 5.0f, 5.0f),
-					glm::vec3(0.0f,1.0f,0.0f));
-
-	return glm::perspective(45.0f, 1.0f, 0.1f, 1000.0f) * 
-		glm::lookAt(glm::vec3(5.0f,5.0f,5.0f),
-					glm::vec3(0.0f, 0.0f, 0.0f),
-					glm::vec3(0.0f,0.0f,1.0f));
 }
