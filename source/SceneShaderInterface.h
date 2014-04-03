@@ -3,10 +3,14 @@
 #include "glincludes.h"
 #include "ShaderLoader.h"
 
+#include "QuadMesh.h"	// REMOVE LATER!!!!!
 
 class SceneShaderInterface {
-private:
+//private:
+public:
 	GLuint shaderProgram;
+	GLuint vertShader;
+	GLuint fragShader;
 
 	int numVertices;
 	int numIndices;
@@ -22,14 +26,21 @@ public:
 	SceneShaderInterface();
 	
 	int init();
+	void setModelViewProj(const glm::mat4 &modelViewProj);
+	void draw();
+	void close();
+	
+
+private:
 
 	void setVertices(int numVertices, const float *positions, const float *texcoords,
 		int numIndices, const unsigned short *indices);
 
 	void bindProgram();
-	void setModelViewProj(const glm::mat4 &modelViewProj);
+	
 	void setTexture(GLuint texture);
-	void draw();
+	
 
-	void close();
+	
+	
 };

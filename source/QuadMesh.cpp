@@ -1,21 +1,21 @@
 #include "QuadMesh.h"
 
-const float QuadMesh::positions[12] =  {	0.0, 0.0f, 0.0f,
-											0.0, 1.0f, 0.0f,
-											1.0, 1.0f, 0.0f,
-											1.0, 0.0f, 0.0f };
+const float QuadMesh::positions[12] =  {	0.0f, 0.0f, 0.0f,
+											1.0f, 0.0f, 0.0f,
+											1.0f, 1.0f, 0.0f,
+											0.0f, 1.0f, 0.0f };
 
 const float QuadMesh::texcoords[8] =  {	0.0, 0.0f,
-										0.0, 1.0f,
+										1.0, 0.0f,
 										1.0, 1.0f,
-										1.0, 0.0f };
+										0.0, 1.0f };
 
 const unsigned short QuadMesh::indices[6] = {	0, 1, 2,
 												0, 2, 3 };
 
 
 QuadMesh::QuadMesh()
-//	: quads(NULL), numQuads(0)
+	: quads(NULL), numQuads(0)
 {
 
 	// TEST !!!!!!!!!!!!!
@@ -32,7 +32,7 @@ QuadMesh::QuadMesh()
 	cubeCorners[6] = glm::vec3(1.0f, 1.0f, 1.0f);
 	cubeCorners[7] = glm::vec3(0.0f, 1.0f, 1.0f);
 
-	quads[0].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[3]);
+	quads[0].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
 	quads[1].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[7]);
 	quads[2].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
 	quads[3].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
@@ -41,22 +41,23 @@ QuadMesh::QuadMesh()
 
 
 }
-
-void QuadMesh::setVerticesSceneShader(SceneShaderInterface &ssi) const{
-	ssi.setVertices(4, positions, texcoords, 6, indices);
+/*
+void QuadMesh::setVerticesSceneShader(SceneShaderInterface *ssi) const{
+	ssi->setVertices(4, positions, texcoords, 6, indices);
 }
 
-void QuadMesh::renderWithSceneShader(SceneShaderInterface &ssi, glm::mat4 viewProj) const {
+void QuadMesh::renderWithSceneShader(SceneShaderInterface *ssi, glm::mat4 viewProj) const {
 	
 	// assume ssi has been bound already
 	// assume ssi already has vertices
 
 	for (int i=0; i<numQuads; i++) {
-		ssi.setModelViewProj(viewProj * quads[i].getModel());
-		ssi.setTexture(quads[i].getRadiosityTex());
-		ssi.draw();
+		ssi->setModelViewProj(viewProj * quads[i].getModel());
+		ssi->setTexture(quads[i].getRadiosityTex());
+		ssi->draw();
 	}
 }
+*/
 
 
 QuadMesh::~QuadMesh() {

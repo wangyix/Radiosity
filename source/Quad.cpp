@@ -18,9 +18,9 @@ Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 		for (int j=0; j<RAD_TEX_HEIGHT; ++j) {
 			int base = 3*i*j;
 			if ( (i/4 + j/4)%2==0 ) { 
-				initialPixels[base] = 1.0f;
+				initialPixels[base] = 0.0f;
 				initialPixels[base+1] = 1.0f;
-				initialPixels[base+2] = 1.0f;
+				initialPixels[base+2] = 0.0f;
 			} else {
 				initialPixels[base] = 0.0f;
 				initialPixels[base+1] = 0.0f;
@@ -105,9 +105,9 @@ void Quad::setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLe
 	glm::vec3 v = topLeft - bottomLeft;
 	glm::vec3 n = glm::normalize(glm::cross(u, v));
 
-	this->model = glm::mat4(	u[0],	v[0],	n[0],	bottomLeft[0],
-						u[1],	v[1],	n[1],	bottomLeft[1],
-						u[2],	v[2],	n[2],	bottomLeft[2],
+	model = glm::mat4(	u.x,	v.x,	n.x,	bottomLeft.x,
+						u.y,	v.y,	n.y,	bottomLeft.y,
+						u.z,	v.z,	n.z,	bottomLeft.z,
 						0.0f,	0.0f,	0.0f,	1.0f
 					);
 }
