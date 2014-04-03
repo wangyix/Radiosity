@@ -1,7 +1,20 @@
 
-#include "ShaderLoader.h"
+#include "Utils.h"
 
-GLuint ShaderLoader::loadShaderFromFile(char* path, GLenum shaderType) {
+
+void Utils::exitOnGLError(const char* error_message) {
+
+	const GLenum ErrorValue = glGetError();
+	if (ErrorValue != GL_NO_ERROR) {
+		fprintf(stderr, "%s: %s\n", error_message, gluErrorString(ErrorValue));
+		printf("Press enter to exit...");
+		getchar();
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+GLuint Utils::loadShaderFromFile(char* path, GLenum shaderType) {
 
 	GLuint shaderID = 0;
 	std::string shaderString;

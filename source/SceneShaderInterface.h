@@ -1,9 +1,8 @@
 #pragma once
 
 #include "glincludes.h"
-#include "ShaderLoader.h"
+#include "Utils.h"
 
-#include "QuadMesh.h"	// REMOVE LATER!!!!!
 
 class SceneShaderInterface {
 //private:
@@ -14,7 +13,6 @@ public:
 
 	int numVertices;
 	int numIndices;
-	GLuint vao;
 	GLuint positionVbo;
 	GLuint texcoordVbo;
 	GLuint indexVbo;
@@ -25,17 +23,11 @@ public:
 public:
 	SceneShaderInterface();
 	
-	int init();
+	void init();
+	void setVertices(int numVertices, const float *positions, const float *texcoords,
+		int numIndices, const unsigned short *indices);
 	void setModelViewProj(const glm::mat4 &modelViewProj);
 	void setTexture(GLuint texture);
 	void draw();
 	void close();
-	
-
-private:
-
-	void setVertices(int numVertices, const float *positions, const float *texcoords,
-		int numIndices, const unsigned short *indices);
-
-	void bindProgram();
 };

@@ -1,5 +1,22 @@
 #include "Quad.h"
 
+const int Quad::numVertices = 4;
+const int Quad::numIndices = 6;
+
+const float Quad::positions[12] =  {	0.0f, 0.0f, 0.0f,
+										1.0f, 0.0f, 0.0f,
+										1.0f, 1.0f, 0.0f,
+										0.0f, 1.0f, 0.0f };
+
+const float Quad::texcoords[8] =  {	0.0, 0.0f,
+									1.0, 0.0f,
+									1.0, 1.0f,
+									0.0, 1.0f };
+
+const unsigned short Quad::indices[6] = {	0, 1, 2,
+											0, 2, 3 };
+
+
 
 Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 	glm::vec3 reflectance) {

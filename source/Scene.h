@@ -3,7 +3,6 @@
 #include "glincludes.h"
 #include "SceneShaderInterface.h"
 #include "Quad.h"
-#include "QuadMesh.h"
 #include "Camera.h"
 
 #include <stdio.h>
@@ -13,7 +12,8 @@ private:
 
 	SceneShaderInterface *ssi;
 
-	QuadMesh *quadMesh;
+	int numQuads;
+	Quad *quads;
 
 	Camera camera;
 

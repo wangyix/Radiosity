@@ -4,24 +4,23 @@
 SceneShaderInterface::SceneShaderInterface()
 	: shaderProgram(0), vertShader(0), fragShader(0),
 	numVertices(0), numIndices(0),
-	vao(0), positionVbo(0), texcoordVbo(0), indexVbo(0),
+	positionVbo(0), texcoordVbo(0), indexVbo(0),
 	modelViewProj(-1), tex(-1) {
-
 }
 
 
 // returns true if success
-int SceneShaderInterface::init() {
-
+void SceneShaderInterface::init() {
+	
+	glGetError();
+	
 	// create shaders
 
-	GLenum ErrorCheckValue = glGetError();
-
-	vertShader = ShaderLoader::loadShaderFromFile("./shaders/scene.vert", GL_VERTEX_SHADER);
-	fragShader = ShaderLoader::loadShaderFromFile("./shaders/scene.frag", GL_FRAGMENT_SHADER);
+	vertShader = Utils::loadShaderFromFile("./shaders/scene.vert", GL_VERTEX_SHADER);
+	fragShader = Utils::loadShaderFromFile("./shaders/scene.frag", GL_FRAGMENT_SHADER);
 
 	// link shader objects
-	GLuint shaderProgram = glCreateProgram();
+	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertShader);
 	glAttachShader(shaderProgram, fragShader);
 	glLinkProgram(shaderProgram);
@@ -50,50 +49,52 @@ int SceneShaderInterface::init() {
 	modelViewProj = glGetUniformLocation(shaderProgram, "_modelViewProj");
 	tex = glGetUniformLocation(shaderProgram, "_tex");
 
-
 	glUseProgram(shaderProgram);
-
 
 	// use texture unit 0 for tex
 	glUniform1i(tex, 0);	
 
-
-
-	ErrorCheckValue = glGetError();
-	if (ErrorCheckValue != GL_NO_ERROR) {
-		fprintf(stderr, "ERROR: Could not create the shaders: %s \n", gluErrorString(ErrorCheckValue));
-		exit(-1);
-	}
+	Utils::exitOnGLError("ERROR: could not create shaders");
 	
 
-
-	// create vbos
-
-	ErrorCheckValue = glGetError();
+	// allocate vbos
 
 	glGenBuffers(1, &positionVbo);
+	glGenBuffers(1, &texcoordVbo);
+	glGenBuffers(1, &indexVbo);
+
+
+	Utils::exitOnGLError("ERROR: could not allocate vbos");
+}
+
+
+
+
+
+void SceneShaderInterface::setVertices(int numVertices, const float *positions, const float *texcoords,
+		int numIndices, const unsigned short *indices) {
+
+	// set up vbos
+
+	GLenum ErrorCheckValue = glGetError();
+
 	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-	glBufferData(GL_ARRAY_BUFFER, 12*sizeof(float), QuadMesh::positions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	glGenBuffers(1, &texcoordVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
-	glBufferData(GL_ARRAY_BUFFER, 8*sizeof(float), QuadMesh::texcoords, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2*numVertices*sizeof(float), texcoords, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 
-	glGenBuffers(1, &indexVbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6*sizeof(unsigned short), QuadMesh::indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
 
-
-	ErrorCheckValue = glGetError();
-	if (ErrorCheckValue != GL_NO_ERROR) {
-		fprintf(stderr, "ERROR: Could not create a VBO: %s \n", gluErrorString(ErrorCheckValue));
-		exit(-1);
-	}
+	Utils::exitOnGLError("ERROR: could not set up vbos");
 }
+
+
 
 
 
@@ -127,30 +128,10 @@ void SceneShaderInterface::draw() {
 
 
 void SceneShaderInterface::close() {
-
-	// destroy shaders
-	GLenum ErrorCheckValue = glGetError();
-
-	glUseProgram(0);
-
-	glDetachShader(shaderProgram, vertShader);
-	glDetachShader(shaderProgram, fragShader);
-
-	glDeleteShader(fragShader);
-	glDeleteShader(vertShader);
-
-	glDeleteProgram(shaderProgram);
-
-	ErrorCheckValue = glGetError();
-	if (ErrorCheckValue != GL_NO_ERROR) {
-		fprintf(stderr, "ERROR: Could not destroy the shaders: %s \n", gluErrorString(ErrorCheckValue));
-		exit(-1);
-	}
-
-
+	
+	glGetError();
+	
 	// destroy vbos
-
-	ErrorCheckValue = glGetError();
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
@@ -162,70 +143,20 @@ void SceneShaderInterface::close() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &indexVbo);
 
-	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &vao);
+	Utils::exitOnGLError("ERROR: could not destroy vbos");
 
-	ErrorCheckValue = glGetError();
-	if (ErrorCheckValue != GL_NO_ERROR) {
-		fprintf(stderr, "ERROR: Could not destroy the VBO: %s \n", gluErrorString(ErrorCheckValue));
-		exit(-1);
-	}
+
+	// destroy shaders
+
+	glUseProgram(0);
+
+	glDetachShader(shaderProgram, vertShader);
+	glDetachShader(shaderProgram, fragShader);
+
+	glDeleteShader(vertShader);
+	glDeleteShader(fragShader);
+
+	glDeleteProgram(shaderProgram);
+
+	Utils::exitOnGLError("ERROR: could not destroy shaders");
 }
-
-
-
-
-
-
-
-
-
-
-void SceneShaderInterface::setVertices(int numVertices, const float *positions, const float *texcoords,
-int numIndices, const unsigned short *indices) {
-
-	// set up vao...
-
-	glBindVertexArray(vao);
-
-	// associate vertex attribute 0 (position) with positionVbo
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-	glBufferData(GL_ARRAY_BUFFER, numVertices*3*sizeof(float), positions, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// associate vertex attribute 1 (texcoord) with texcoordVbo
-	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
-	glBufferData(GL_ARRAY_BUFFER, numVertices*2*sizeof(float), texcoords, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-
-
-	// enable access for those attributes
-
-	
-
-	// give data to position and texcoord vbos
-	this->numVertices = numVertices;
-	this->numIndices = numIndices;
-
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-	//glBufferData(GL_ARRAY_BUFFER, numVertices*3*sizeof(float), positions, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
-	//glBufferData(GL_ARRAY_BUFFER, numVertices*2*sizeof(float), texcoords, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
-	
-}
-
-
-void SceneShaderInterface::bindProgram() {
-	
-	glUseProgram(shaderProgram);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
-}
-

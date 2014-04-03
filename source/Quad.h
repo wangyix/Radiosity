@@ -7,6 +7,13 @@
 
 class Quad {
 
+public:
+	static const int numVertices;
+	static const int numIndices;
+	static const float positions[];
+	static const float texcoords[];
+	static const unsigned short indices[];
+
 private:
 	
 	glm::mat4 model;
