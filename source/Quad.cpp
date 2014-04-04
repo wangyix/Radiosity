@@ -33,7 +33,7 @@ Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 
 	// FOR TESTING!!!!!!!!!!!!
 	static float t = -0.2f;
-	t += 0.2f;
+	t += 0.01f;
 	for (int i=0; i<RAD_TEX_HEIGHT; ++i) {
 		for (int j=0; j<RAD_TEX_WIDTH; ++j) {
 			int base = 3 * (i*RAD_TEX_WIDTH + j);
@@ -42,8 +42,8 @@ Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 				initialPixels[base+1] = 1.0f;
 				initialPixels[base+2] = 1.0f;
 			} else {
-				initialPixels[base] = 0.0f;
-				initialPixels[base+1] = t;
+				initialPixels[base] = t;
+				initialPixels[base+1] = 0.0;
 				initialPixels[base+2] = 0.0f;
 			}
 		}
@@ -117,6 +117,30 @@ Quad::~Quad() {
 	glDeleteTextures(1, &residualTex);
 	glDeleteTextures(1, &radiosityTexB);
 	glDeleteTextures(1, &residualTexB);
+}
+
+
+
+int Quad::tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
+int rows, int columns, glm::vec3 reflectance) {
+
+	glm::vec3 u = (bottomRight-bottomLeft) / (float)columns;
+	glm::vec3 v = (topLeft-bottomLeft) / (float)rows;
+
+	glm::vec3 rowBase = bottomLeft;
+	glm::vec3 base;
+	int k = 0;
+	for (int i=0; i<rows; ++i) {
+		base = rowBase;
+		for (int j=0; j<columns; ++j) {
+			quads[k].setModel(base, base+u, base+v);
+			quads[k].setReflectance(reflectance);
+			k++;
+			base += u;
+		}
+		rowBase += v;
+	}
+	return k;
 }
 
 

@@ -34,6 +34,9 @@ public:
 
 	~Quad();
 
+	static int tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
+			int rows, int columns, glm::vec3 reflectance);
+
 	void setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft);
 	void setReflectance(glm::vec3 reflectance);
 

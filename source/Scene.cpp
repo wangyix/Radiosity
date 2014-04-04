@@ -9,29 +9,73 @@ int Scene::init() {
 	if (!quads) {
 
 		// TEST!!!!
-		numQuads = 6;
-		quads = new Quad[6];
-		glm::vec3 cubeCorners[8];
-		cubeCorners[0] = glm::vec3(0.0f, 0.0f, 0.0f);
-		cubeCorners[1] = glm::vec3(1.0f, 0.0f, 0.0f);
-		cubeCorners[2] = glm::vec3(1.0f, 1.0f, 0.0f);
-		cubeCorners[3] = glm::vec3(0.0f, 1.0f, 0.0f);
-		cubeCorners[4] = glm::vec3(0.0f, 0.0f, 1.0f);
-		cubeCorners[5] = glm::vec3(1.0f, 0.0f, 1.0f);
-		cubeCorners[6] = glm::vec3(1.0f, 1.0f, 1.0f);
-		cubeCorners[7] = glm::vec3(0.0f, 1.0f, 1.0f);
-		quads[0].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
-		quads[1].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[7]);
-		quads[2].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
-		quads[3].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
-		quads[4].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
-		quads[5].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
-		quads[0].setReflectance(glm::vec3(1.0f,0.0f,0.0f));
-		quads[1].setReflectance(glm::vec3(0.0f,1.0f,0.0f));
-		quads[2].setReflectance(glm::vec3(0.0f,0.0f,1.0f));
-		quads[3].setReflectance(glm::vec3(1.0f,1.0f,0.0f));
-		quads[4].setReflectance(glm::vec3(0.0f,1.0f,1.0f));
-		quads[5].setReflectance(glm::vec3(1.0f,0.0f,1.0f));
+		quads = new Quad[96];
+		numQuads = 0;
+		
+		// cube A
+		glm::vec3 cubeCorners[12];
+		cubeCorners[0] = glm::vec3(-1.5f, -0.8f, 0.0f);
+		cubeCorners[1] = glm::vec3(-0.5f, -0.8f, 0.0f);
+		cubeCorners[2] = glm::vec3(-0.5f, 0.2f, 0.0f);
+		cubeCorners[3] = glm::vec3(-1.5f, 0.2f, 0.0f);
+		cubeCorners[4] = glm::vec3(-1.5f, -0.8f, 1.0f);
+		cubeCorners[5] = glm::vec3(-0.5f, -0.8f, 1.0f);
+		cubeCorners[6] = glm::vec3(-0.5f, 0.2f, 1.0f);
+		cubeCorners[7] = glm::vec3(-1.5f, 0.2f, 1.0f);
+
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
+		quads[numQuads++].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[7]);
+
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
+		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
+		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
+		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
+
+
+		cubeCorners[0] = glm::vec3(0.8f, 0.0f, 0.0f);
+		cubeCorners[1] = glm::vec3(1.4f, 0.8f, 0.0f);
+		cubeCorners[2] = glm::vec3(0.6f, 1.4f, 0.0f);
+		cubeCorners[3] = glm::vec3(0.0f, 0.6f, 0.0f);
+		cubeCorners[4] = glm::vec3(0.8f, 0.0f, 1.0f);
+		cubeCorners[5] = glm::vec3(1.4f, 0.8f, 1.0f);
+		cubeCorners[6] = glm::vec3(0.6f, 1.4f, 1.0f);
+		cubeCorners[7] = glm::vec3(0.0f, 0.6f, 1.0f);
+		cubeCorners[8] = glm::vec3(0.8f, 0.0f, 2.0f);
+		cubeCorners[9] = glm::vec3(1.4f, 0.8f, 2.0f);
+		cubeCorners[10] = glm::vec3(0.6f, 1.4f, 2.0f);
+		cubeCorners[11] = glm::vec3(0.0f, 0.6f, 2.0f);
+
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
+		quads[numQuads++].setModel(cubeCorners[8], cubeCorners[9], cubeCorners[11]);
+		
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
+		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
+		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
+		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
+
+		quads[numQuads++].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[8]);
+		quads[numQuads++].setModel(cubeCorners[5], cubeCorners[6], cubeCorners[9]);
+		quads[numQuads++].setModel(cubeCorners[6], cubeCorners[7], cubeCorners[10]);
+		quads[numQuads++].setModel(cubeCorners[7], cubeCorners[4], cubeCorners[11]);
+
+
+		cubeCorners[0] = glm::vec3(-2.0f, -2.0f, 0.0f);
+		cubeCorners[1] = glm::vec3(2.0f, -2.0f, 0.0f);
+		cubeCorners[2] = glm::vec3(2.0f, 2.0f, 0.0f);
+		cubeCorners[3] = glm::vec3(-2.0f, 2.0f, 0.0f);
+		cubeCorners[4] = glm::vec3(-2.0f, -2.0f, 3.0f);
+		cubeCorners[5] = glm::vec3(2.0f, -2.0f, 3.0f);
+		cubeCorners[6] = glm::vec3(2.0f, 2.0f, 3.0f);
+		cubeCorners[7] = glm::vec3(-2.0f, 2.0f, 3.0f);
+
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[0], cubeCorners[1], cubeCorners[3], 4, 4, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[4], cubeCorners[7], cubeCorners[5], 4, 4, glm::vec3(0.0f,1.0f,0.0f));
+
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[0], cubeCorners[4], cubeCorners[1], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[1], cubeCorners[5], cubeCorners[2], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[2], cubeCorners[6], cubeCorners[3], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[3], cubeCorners[7], cubeCorners[0], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
+
 	}
 
 
@@ -41,8 +85,8 @@ int Scene::init() {
 	}
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
-	camera.setPosition(glm::vec3(5.0f, 3.0f, 4.0f));
-	camera.lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
+	camera.lookAt(glm::vec3(0.0f, 0.0f, 1.0f));
 
 	return 0;
 }
