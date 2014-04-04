@@ -53,8 +53,50 @@ void Scene::onResize(int w, int h) {
 }
 
 
-void Scene::update(double delta) {
+void Scene::update(GLFWwindow *window, double delta) {
 
+	float forward = 0.0f;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		forward += 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		forward -= 1.0f;
+	}
+	float right = 0.0f;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		right -= 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		right += 1.0f;
+	}
+	float up = 0.0f;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		up += 1.0f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+		up -= 1.0f;
+	}
+	glm::vec3 move = glm::vec3(forward, right, up);
+	if (glm::length(move) != 0.0f) {
+		move = (float)delta * CAMERA_MOVE_SPEED * glm::normalize(move);
+		camera.moveForward(move.x);
+		camera.moveRight(move.y);
+		camera.moveUp(move.z);
+	}
+
+	static double x, y;
+	glfwGetCursorPos(window, &x, &y);
+	
+	static double prevX=x, prevY=y;
+	
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		float dx = (float)(x-prevX);
+		float dy = (float)(y-prevY);
+		camera.rotateRight(CAMERA_ROTATE_SPEED*dx);
+		camera.rotateUp(-CAMERA_ROTATE_SPEED*dy);
+	}
+	prevX = x;
+	prevY = y;
 }
 
 void Scene::render() {

@@ -61,7 +61,7 @@ void reshape( GLFWwindow* window, int w, int h )
 		scene->onResize(w, h);
 }
 
-void update(double delta) {
+void update(GLFWwindow* window, double delta) {
 
 	// calculate fps
 	static double elapsed = 0.0;
@@ -71,7 +71,7 @@ void update(double delta) {
 		elapsed = 0.0;
 		frameCount = 0;
 	}
-	scene->update(delta);
+	scene->update(window, delta);
 }
 
 
@@ -152,7 +152,7 @@ int main( void )
 		t_old = t;
 
 		// render
-		update(dt);
+		update(window, dt);
 		display();
 
 		// update fps counter in window title
