@@ -15,8 +15,11 @@ public:
 	static const unsigned short indices[];
 
 private:
-	
-	glm::mat4 model;
+
+	glm::vec3 position;	// bottom-left corner
+	glm::vec3 u;
+	glm::vec3 v;
+
 	glm::vec3 reflectance;
 
 	// pingpong buffers
@@ -27,21 +30,30 @@ private:
 
 public:
 
-	Quad(glm::vec3 bottomLeft = glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3 bottomRight = glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3 topLeft = glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3 reflectance = glm::vec3(0.5f, 0.5f, 0.5f));
-
+	Quad();
+	Quad(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
+		const glm::vec3 &reflectance, const glm::vec3 &emittance); 
 	~Quad();
 
+	/*
 	static int tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 			int rows, int columns, glm::vec3 reflectance);
 
 	static void buildWorldVerticesArray(Quad *quads, int numQuads, float *positions, int *quadIds);
-
+	*/
+	/*
 	void setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft);
 	void setReflectance(glm::vec3 reflectance);
-
 	const glm::mat4 &getModel() const;
+	*/
+
 	GLuint getRadiosityTex() const;
+
+	glm::vec3 getPosition() const;
+	glm::vec3 getU() const;
+	glm::vec3 getV() const;
+
+private:
+	void init(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
+		const glm::vec3 &reflectance, const glm::vec3 &emittance);
 };

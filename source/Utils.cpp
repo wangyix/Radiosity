@@ -86,3 +86,29 @@ GLint Utils::linkShaderProgram(GLuint program) {
 	}
 	return isLinked;
 }
+
+std::string Utils::trim(const std::string &str, const std::string &whitespace=" \t") {
+	const auto strBegin = str.find_first_not_of(whitespace);
+    if (strBegin == std::string::npos)
+        return ""; // no content
+
+    const auto strEnd = str.find_last_not_of(whitespace);
+    const auto strRange = strEnd - strBegin + 1;
+
+    return str.substr(strBegin, strRange);
+}
+
+
+/*
+std::string Utils::getNextLine(std::ifstream &ifs) {
+	Line.clear();
+	while (std::getline(ifs, Line)) {
+
+
+		// find first non-space character.  skip if #
+		size_t strBegin = Line.find_first_not_of(" \t");
+		if (strBegin!=std::string::npos && Line[strBegin]!='#')
+			break;
+	}
+	return (!ifs.eof());
+}*/
