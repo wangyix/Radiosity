@@ -8,12 +8,12 @@ layout(location=0) in vec3 position;
 layout(location=1) in vec2 texcoord;
 
 // vertex shader output
-out vec2 uv;
+out vec2 vTexcoord;
 
 
 void main(void) {
 
 	gl_Position = _modelViewProj * vec4(position, 1.0);
 
-	uv = texcoord;
+	vTexcoord = texcoord;
 }

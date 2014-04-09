@@ -7,5 +7,5 @@ namespace Utils {
 
 	void exitOnGLError(const char* error_message);
 	GLuint loadShaderFromFile(char* path, GLenum shaderType);
-
+	GLint linkShaderProgram(GLuint program);
 }

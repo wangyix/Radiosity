@@ -99,7 +99,8 @@ void Camera::orthonormalize() {
 }
 
 
-glm::mat4 Camera::getViewProj() const {
+
+glm::mat4 Camera::getView() const {
 	
 	float tR = -glm::dot(position, right);
 	float tU = -glm::dot(position, up);
@@ -110,6 +111,10 @@ glm::mat4 Camera::getViewProj() const {
 					right.y,	up.y,	lookNeg.y,	0.0f,
 					right.z,	up.z,	lookNeg.z,	0.0f,
 					tR,			tU,		tL,			1.0f );
+	return view;
+}
 
-	return proj * view;
+
+glm::mat4 Camera::getViewProj() const {
+	return proj * getView();
 }

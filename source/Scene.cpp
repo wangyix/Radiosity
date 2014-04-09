@@ -1,7 +1,7 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(0), quads(0){
+	: ssi(0), vsi(0), quads(0){
 }
 
 int Scene::init() {
@@ -76,12 +76,28 @@ int Scene::init() {
 		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[2], cubeCorners[6], cubeCorners[3], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
 		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[3], cubeCorners[7], cubeCorners[0], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
 
+
+
+
+		quadPositions = new float[4*3*numQuads];
+		quadIds = new int[4*numQuads];
+
+		Quad::buildWorldVerticesArray(quads, numQuads, quadPositions, quadIds);
+
 	}
 
-
+	/*
 	if (!ssi) {
 		ssi = new SceneShaderInterface();
 		ssi->init();
+	}*/
+
+	if (!vsi) {
+		vsi = new VisibilityShaderInterface();
+		vsi->init();
+
+		vsi->setNearFar(0.0f, 1000.0f);
+		vsi->setVertices(4*numQuads, quadPositions, quadIds);
 	}
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
@@ -143,8 +159,10 @@ void Scene::update(GLFWwindow *window, double delta) {
 	prevY = y;
 }
 
+
 void Scene::render() {
 
+	/*
 	ssi->setVertices(Quad::numVertices, Quad::positions, Quad::texcoords,
 			Quad::numIndices, Quad::indices);
 
@@ -152,13 +170,21 @@ void Scene::render() {
 		ssi->setModelViewProj(camera.getViewProj() * quads[i].getModel());
 		ssi->setTexture(quads[i].getRadiosityTex());
 		ssi->draw();
-	}
+	}*/
+
+	vsi->setModelView(camera.getView());
+	vsi->draw();
 }
 
 void Scene::close() {
 	if (ssi) {
 		ssi->close();
 		delete ssi;
+	}
+
+	if (vsi) {
+		vsi->close();
+		delete vsi;
 	}
 
 	if (quads) {

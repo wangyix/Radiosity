@@ -37,6 +37,8 @@ public:
 	static int tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
 			int rows, int columns, glm::vec3 reflectance);
 
+	static void buildWorldVerticesArray(Quad *quads, int numQuads, float *positions, int *quadIds);
+
 	void setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft);
 	void setReflectance(glm::vec3 reflectance);
 

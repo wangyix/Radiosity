@@ -33,7 +33,7 @@ public:
 	void rotateUp(float deg);
 	void lookAt(const glm::vec3 &target);
 	
-
+	glm::mat4 getView() const;
 	glm::mat4 getViewProj() const;
 
 private:

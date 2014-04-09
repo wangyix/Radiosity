@@ -9,13 +9,11 @@ SceneShaderInterface::SceneShaderInterface()
 }
 
 
-// returns true if success
 void SceneShaderInterface::init() {
 	
 	glGetError();
 	
-	// create shaders
-
+	// load shaders
 	vertShader = Utils::loadShaderFromFile("./shaders/scene.vert", GL_VERTEX_SHADER);
 	fragShader = Utils::loadShaderFromFile("./shaders/scene.frag", GL_FRAGMENT_SHADER);
 
@@ -23,27 +21,7 @@ void SceneShaderInterface::init() {
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertShader);
 	glAttachShader(shaderProgram, fragShader);
-	glLinkProgram(shaderProgram);
-
-	// check for link errors
-	GLint isLinked = 0;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
-	if (isLinked == GL_FALSE) {
-		
-		GLint infoLen = 0;
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &infoLen);
-		char *infoLog = new char[infoLen];
-		glGetProgramInfoLog(shaderProgram, infoLen, NULL, infoLog);
-		fprintf(stderr, "Error linking shaders:\n%s\n", infoLog);
-		delete infoLog;
-
-		// clean up
-		glDeleteProgram(shaderProgram);
-		glDeleteShader(vertShader);
-		glDeleteShader(fragShader);
-		
-		exit(-1);
-	}
+	Utils::linkShaderProgram(shaderProgram);
 	
 	// get uniform locations
 	modelViewProj = glGetUniformLocation(shaderProgram, "_modelViewProj");
@@ -54,7 +32,7 @@ void SceneShaderInterface::init() {
 	// use texture unit 0 for tex
 	glUniform1i(tex, 0);	
 
-	Utils::exitOnGLError("ERROR: could not create shaders");
+	Utils::exitOnGLError("ERROR: could not create shader program");
 	
 
 	// allocate vbos
@@ -73,6 +51,9 @@ void SceneShaderInterface::init() {
 
 void SceneShaderInterface::setVertices(int numVertices, const float *positions, const float *texcoords,
 		int numIndices, const unsigned short *indices) {
+
+	this->numVertices = numVertices;
+	this->numIndices = numIndices;
 
 	// set up vbos
 
@@ -121,7 +102,7 @@ void SceneShaderInterface::draw() {
 
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
 
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+	glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL);
 }
 
 

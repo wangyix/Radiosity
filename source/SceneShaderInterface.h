@@ -5,8 +5,8 @@
 
 
 class SceneShaderInterface {
-//private:
-public:
+
+private:
 	GLuint shaderProgram;
 	GLuint vertShader;
 	GLuint fragShader;

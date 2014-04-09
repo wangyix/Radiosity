@@ -144,6 +144,48 @@ int rows, int columns, glm::vec3 reflectance) {
 }
 
 
+void Quad::buildWorldVerticesArray(Quad *quads, int numQuads, float *positions, int *quadIds) {
+	
+	glm::vec4 posModel0 = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 posModel1 = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 posModel2 = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+	glm::vec4 posModel3 = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+	int p = 0;
+	int q = 0;
+
+	glm::vec4 posWorld0, posWorld1, posWorld2, posWorld3;
+	
+	for (int i=0; i<numQuads; i++) {
+
+		posWorld0 = quads[i].getModel() * posModel0;
+		posWorld1 = quads[i].getModel() * posModel1;
+		posWorld2 = quads[i].getModel() * posModel2;
+		posWorld3 = quads[i].getModel() * posModel3;
+
+		positions[p++] = posWorld0.x;
+		positions[p++] = posWorld0.y;
+		positions[p++] = posWorld0.z;
+		quadIds[q++] = i;
+
+		positions[p++] = posWorld1.x;
+		positions[p++] = posWorld1.y;
+		positions[p++] = posWorld1.z;
+		quadIds[q++] = i;
+
+		positions[p++] = posWorld2.x;
+		positions[p++] = posWorld2.y;
+		positions[p++] = posWorld2.z;
+		quadIds[q++] = i;
+
+		positions[p++] = posWorld3.x;
+		positions[p++] = posWorld3.y;
+		positions[p++] = posWorld3.z;
+		quadIds[q++] = i;
+	}
+}
+
+
 void Quad::setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft) {
 	
 	glm::vec3 u = bottomRight - bottomLeft;
