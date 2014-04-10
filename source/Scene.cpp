@@ -1,104 +1,23 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(0), vsi(0), quads(0){
+	: ssi(), vsi(), quadMesh(){
 }
 
 int Scene::init() {
-	
-	if (!quads) {
 
-		// TEST!!!!
-		quads = new Quad[96];
-		numQuads = 0;
-		
-		// cube A
-		glm::vec3 cubeCorners[12];
-		cubeCorners[0] = glm::vec3(-1.5f, -0.8f, 0.0f);
-		cubeCorners[1] = glm::vec3(-0.5f, -0.8f, 0.0f);
-		cubeCorners[2] = glm::vec3(-0.5f, 0.2f, 0.0f);
-		cubeCorners[3] = glm::vec3(-1.5f, 0.2f, 0.0f);
-		cubeCorners[4] = glm::vec3(-1.5f, -0.8f, 1.0f);
-		cubeCorners[5] = glm::vec3(-0.5f, -0.8f, 1.0f);
-		cubeCorners[6] = glm::vec3(-0.5f, 0.2f, 1.0f);
-		cubeCorners[7] = glm::vec3(-1.5f, 0.2f, 1.0f);
+	quadMesh.load("./scenefiles/cornell_box.txt");
 
-		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
-		quads[numQuads++].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[7]);
-
-		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
-		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
-		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
-		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
-
-
-		cubeCorners[0] = glm::vec3(0.8f, 0.0f, 0.0f);
-		cubeCorners[1] = glm::vec3(1.4f, 0.8f, 0.0f);
-		cubeCorners[2] = glm::vec3(0.6f, 1.4f, 0.0f);
-		cubeCorners[3] = glm::vec3(0.0f, 0.6f, 0.0f);
-		cubeCorners[4] = glm::vec3(0.8f, 0.0f, 1.0f);
-		cubeCorners[5] = glm::vec3(1.4f, 0.8f, 1.0f);
-		cubeCorners[6] = glm::vec3(0.6f, 1.4f, 1.0f);
-		cubeCorners[7] = glm::vec3(0.0f, 0.6f, 1.0f);
-		cubeCorners[8] = glm::vec3(0.8f, 0.0f, 2.0f);
-		cubeCorners[9] = glm::vec3(1.4f, 0.8f, 2.0f);
-		cubeCorners[10] = glm::vec3(0.6f, 1.4f, 2.0f);
-		cubeCorners[11] = glm::vec3(0.0f, 0.6f, 2.0f);
-
-		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
-		quads[numQuads++].setModel(cubeCorners[8], cubeCorners[9], cubeCorners[11]);
-		
-		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
-		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
-		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
-		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
-
-		quads[numQuads++].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[8]);
-		quads[numQuads++].setModel(cubeCorners[5], cubeCorners[6], cubeCorners[9]);
-		quads[numQuads++].setModel(cubeCorners[6], cubeCorners[7], cubeCorners[10]);
-		quads[numQuads++].setModel(cubeCorners[7], cubeCorners[4], cubeCorners[11]);
-
-
-		cubeCorners[0] = glm::vec3(-2.0f, -2.0f, 0.0f);
-		cubeCorners[1] = glm::vec3(2.0f, -2.0f, 0.0f);
-		cubeCorners[2] = glm::vec3(2.0f, 2.0f, 0.0f);
-		cubeCorners[3] = glm::vec3(-2.0f, 2.0f, 0.0f);
-		cubeCorners[4] = glm::vec3(-2.0f, -2.0f, 3.0f);
-		cubeCorners[5] = glm::vec3(2.0f, -2.0f, 3.0f);
-		cubeCorners[6] = glm::vec3(2.0f, 2.0f, 3.0f);
-		cubeCorners[7] = glm::vec3(-2.0f, 2.0f, 3.0f);
-
-		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[0], cubeCorners[1], cubeCorners[3], 4, 4, glm::vec3(0.0f,1.0f,0.0f));
-		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[4], cubeCorners[7], cubeCorners[5], 4, 4, glm::vec3(0.0f,1.0f,0.0f));
-
-		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[0], cubeCorners[4], cubeCorners[1], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
-		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[1], cubeCorners[5], cubeCorners[2], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
-		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[2], cubeCorners[6], cubeCorners[3], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
-		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[3], cubeCorners[7], cubeCorners[0], 4, 3, glm::vec3(0.0f,1.0f,0.0f));
-
-
-
-
-		quadPositions = new float[4*3*numQuads];
-		quadIds = new int[4*numQuads];
-
-		Quad::buildWorldVerticesArray(quads, numQuads, quadPositions, quadIds);
-
-	}
+	ssi.init();
+	ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
+		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 
 	/*
-	if (!ssi) {
-		ssi = new SceneShaderInterface();
-		ssi->init();
-	}*/
-
-	if (!vsi) {
-		vsi = new VisibilityShaderInterface();
-		vsi->init();
-
-		vsi->setNearFar(0.0f, 1000.0f);
-		vsi->setVertices(4*numQuads, quadPositions, quadIds);
-	}
+	vsi.init();
+	vsi.setNearFar(0.0f, 1000.0f);
+	vsi.setVertices(quadMesh.getNumVertices(),
+		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
+	*/
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
@@ -162,32 +81,22 @@ void Scene::update(GLFWwindow *window, double delta) {
 
 void Scene::render() {
 
-	/*
-	ssi->setVertices(Quad::numVertices, Quad::positions, Quad::texcoords,
-			Quad::numIndices, Quad::indices);
+	ssi.setModelViewProj(camera.getViewProj());
 
-	for (int i=0; i<numQuads; ++i) {
-		ssi->setModelViewProj(camera.getViewProj() * quads[i].getModel());
-		ssi->setTexture(quads[i].getRadiosityTex());
-		ssi->draw();
-	}*/
+	for (int i=0; i<quadMesh.getNumQuads(); i++) {
+		ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
+		ssi.draw(quadMesh.getBaseVertex(i));
+	}
 
-	vsi->setModelView(camera.getView());
-	vsi->draw();
+	//vsi.setModelView(camera.getView());
+	//vsi.draw();
 }
 
 void Scene::close() {
-	if (ssi) {
-		ssi->close();
-		delete ssi;
-	}
+	
+	ssi.close();
 
-	if (vsi) {
-		vsi->close();
-		delete vsi;
-	}
+	//vsi.close();
 
-	if (quads) {
-		delete[] quads;
-	}
+	quadMesh.unload();
 }

@@ -8,11 +8,8 @@
 class Quad {
 
 public:
-	static const int numVertices;
+	static const unsigned short indices[6];
 	static const int numIndices;
-	static const float positions[];
-	static const float texcoords[];
-	static const unsigned short indices[];
 
 private:
 
@@ -30,22 +27,13 @@ private:
 
 public:
 
-	Quad();
-	Quad(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
-		const glm::vec3 &reflectance, const glm::vec3 &emittance); 
-	~Quad();
-
-	/*
-	static int tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
-			int rows, int columns, glm::vec3 reflectance);
-
-	static void buildWorldVerticesArray(Quad *quads, int numQuads, float *positions, int *quadIds);
-	*/
-	/*
-	void setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft);
-	void setReflectance(glm::vec3 reflectance);
-	const glm::mat4 &getModel() const;
-	*/
+	Quad(const glm::vec3 &bottomLeft	= glm::vec3(0.0f,0.0f,0.0f),
+		const glm::vec3 &bottomRight	= glm::vec3(1.0f,0.0f,0.0f),
+		const glm::vec3 &topLeft		= glm::vec3(0.0f,1.0f,0.0f), 
+		const glm::vec3 &reflectance	= glm::vec3(0.5f,0.5f,0.5f)); 
+	
+	void initTextures(const glm::vec3 &emittance);
+	void closeTextures();
 
 	GLuint getRadiosityTex() const;
 
@@ -53,7 +41,4 @@ public:
 	glm::vec3 getU() const;
 	glm::vec3 getV() const;
 
-private:
-	void init(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
-		const glm::vec3 &reflectance, const glm::vec3 &emittance);
 };

@@ -96,13 +96,15 @@ void SceneShaderInterface::setTexture(GLuint texture) {
 
 
 
-void SceneShaderInterface::draw() {
+void SceneShaderInterface::draw(int baseVertex) {
 
 	//glUseProgram(shaderProgram);
 
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
 
-	glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL);
+	//glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL);
+
+	glDrawElementsBaseVertex(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL, baseVertex);
 }
 
 

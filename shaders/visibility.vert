@@ -12,9 +12,9 @@ out int vQuadId;
 out float vTessLevel;
 
 
-#define MAX_TESS_LEVEL 128.0f
+#define MAX_TESS_LEVEL 32.0f
 #define MIN_TESS_LEVEL 1.0f
-#define DIST_FOR_MIN_TESS 50.0f
+#define DIST_FOR_MIN_TESS 10.0f
 
 void main(void) {
 

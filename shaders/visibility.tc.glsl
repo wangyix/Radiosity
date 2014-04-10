@@ -22,15 +22,15 @@ out int tcQuadId[];
 void main() {
 
 	tcPosition[i] = vPosition[i];
+	tcQuadId[i] = vQuadId[i];
 
 	// set per-patch attributes once
 	if (i==0) {
-		tcQuadId[0] = vQuadId[0];
-		gl_TessLevelInner[0] = 1.0f;
-		gl_TessLevelInner[1] = 1.0f;
-		gl_TessLevelOuter[0] = max(vTessLevel[1], vTessLevel[2]);
-		gl_TessLevelOuter[1] = max(vTessLevel[0], vTessLevel[1]);
-		gl_TessLevelOuter[2] = max(vTessLevel[3], vTessLevel[0]);
-		gl_TessLevelOuter[3] = max(vTessLevel[2], vTessLevel[3]);
+		gl_TessLevelOuter[0] = max(vTessLevel[1], vTessLevel[2]);	// between vertices 1 and 2
+		gl_TessLevelOuter[1] = max(vTessLevel[2], vTessLevel[3]);	// between vertices 2 and 3
+		gl_TessLevelOuter[2] = max(vTessLevel[3], vTessLevel[0]);	// between vertices 3 and 0
+		gl_TessLevelOuter[3] = max(vTessLevel[0], vTessLevel[1]);	// between vertices 0 and 1
+		gl_TessLevelInner[0] = max(gl_TessLevelOuter[0], gl_TessLevelOuter[2]);		// in direction of edges 0-1 and 2-3
+		gl_TessLevelInner[1] = gl_TessLevelInner[0];								// in direction of edges 1-2 and 3-0
 	}
 }

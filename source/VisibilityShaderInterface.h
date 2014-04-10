@@ -21,11 +21,12 @@ private:
 	GLint nearFar;
 
 public:
+	
 	VisibilityShaderInterface();
 	
 	void init();
 	
-	void setVertices(int numVertices, const float *positions, const int *quadIds);
+	void setVertices(int numVertices, const float *positions, const int *ids);
 
 	void setNearFar(float near, float far);
 	void setModelView(const glm::mat4 &modelView);

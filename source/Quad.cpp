@@ -1,47 +1,33 @@
 #include "Quad.h"
 
-const int Quad::numVertices = 4;
+const unsigned short Quad::indices[] = {0,1,2,0,2,3};
 const int Quad::numIndices = 6;
 
-const float Quad::positions[12] =  {	0.0f, 0.0f, 0.0f,
-										1.0f, 0.0f, 0.0f,
-										1.0f, 1.0f, 0.0f,
-										0.0f, 1.0f, 0.0f };
 
-const float Quad::texcoords[8] =  {	0.0, 0.0f,
-									1.0, 0.0f,
-									1.0, 1.0f,
-									0.0, 1.0f };
-
-const unsigned short Quad::indices[6] = {	0, 1, 2,
-											0, 2, 3 };
-
-Quad::Quad() {
-	init(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 0.0f));
-}
 
 Quad::Quad(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
-		const glm::vec3 &reflectance, const glm::vec3 &emittance) {
-	init(bottomLeft, bottomRight, topLeft, reflectance, emittance);
+		const glm::vec3 &reflectance) {
+	position = bottomLeft;
+	u = bottomRight - bottomLeft;
+	v = topLeft - bottomLeft;
+	this->reflectance = reflectance;
 }
 
 
 
-void Quad::init(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
-		const glm::vec3 &reflectance, const glm::vec3 &emittance) {
-
-	this->position = bottomLeft;
-	this->u = bottomRight - bottomLeft;
-	this->v = topLeft - bottomLeft;
-
-	this->reflectance = reflectance;
-
+void Quad::initTextures(const glm::vec3 &emittance) {
 
 	// initial texture data
 	float *initialPixels = new float[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
-	memset(initialPixels, 0, sizeof(initialPixels));
-
+	/*
+	int k = 0;
+	for (int i=0; i<RAD_TEX_HEIGHT; ++i) {
+		for (int j=0; j<RAD_TEX_WIDTH; ++j) {
+			initialPixels[k++] = emittance.x;
+			initialPixels[k++] = emittance.y;
+			initialPixels[k++] = emittance.z;
+		}
+	}*/
 
 	// FOR TESTING!!!!!!!!!!!!
 	static float t = -0.2f;
@@ -125,14 +111,16 @@ void Quad::init(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const
 }
 
 
-
-
-Quad::~Quad() {
+void Quad::closeTextures() {
 	glDeleteTextures(1, &radiosityTex);
 	glDeleteTextures(1, &residualTex);
 	glDeleteTextures(1, &radiosityTexB);
 	glDeleteTextures(1, &residualTexB);
 }
+
+
+
+
 
 
 glm::vec3 Quad::getPosition() const {
@@ -152,88 +140,3 @@ glm::vec3 Quad::getV() const {
 GLuint Quad::getRadiosityTex() const {
 	return radiosityTex;
 }
-
-/*
-int Quad::tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
-int rows, int columns, glm::vec3 reflectance) {
-
-	glm::vec3 u = (bottomRight-bottomLeft) / (float)columns;
-	glm::vec3 v = (topLeft-bottomLeft) / (float)rows;
-
-	glm::vec3 rowBase = bottomLeft;
-	glm::vec3 base;
-	int k = 0;
-	for (int i=0; i<rows; ++i) {
-		base = rowBase;
-		for (int j=0; j<columns; ++j) {
-			quads[k].setModel(base, base+u, base+v);
-			quads[k].setReflectance(reflectance);
-			k++;
-			base += u;
-		}
-		rowBase += v;
-	}
-	return k;
-}*/
-/*
-
-void Quad::buildWorldVerticesArray(Quad *quads, int numQuads, float *positions, int *quadIds) {
-	
-	glm::vec4 posModel0 = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	glm::vec4 posModel1 = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-	glm::vec4 posModel2 = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
-	glm::vec4 posModel3 = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	int p = 0;
-	int q = 0;
-
-	glm::vec4 posWorld0, posWorld1, posWorld2, posWorld3;
-	
-	for (int i=0; i<numQuads; i++) {
-
-		posWorld0 = quads[i].getModel() * posModel0;
-		posWorld1 = quads[i].getModel() * posModel1;
-		posWorld2 = quads[i].getModel() * posModel2;
-		posWorld3 = quads[i].getModel() * posModel3;
-
-		positions[p++] = posWorld0.x;
-		positions[p++] = posWorld0.y;
-		positions[p++] = posWorld0.z;
-		quadIds[q++] = i;
-
-		positions[p++] = posWorld1.x;
-		positions[p++] = posWorld1.y;
-		positions[p++] = posWorld1.z;
-		quadIds[q++] = i;
-
-		positions[p++] = posWorld2.x;
-		positions[p++] = posWorld2.y;
-		positions[p++] = posWorld2.z;
-		quadIds[q++] = i;
-
-		positions[p++] = posWorld3.x;
-		positions[p++] = posWorld3.y;
-		positions[p++] = posWorld3.z;
-		quadIds[q++] = i;
-	}
-}*/
-
-/*
-void Quad::setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft) {
-	
-	glm::vec3 u = bottomRight - bottomLeft;
-	glm::vec3 v = topLeft - bottomLeft;
-	glm::vec3 n = glm::normalize(glm::cross(u, v));
-
-	// constructor order is tranposed
-	model = glm::mat4(	u.x,	u.y,	u.z,	0.0f,
-						v.x,	v.y,	v.z,	0.0f,
-						n.x,	n.y,	n.z,	0.0f,
-						bottomLeft.x,	bottomLeft.y,	bottomLeft.z,	1.0f
-					);
-}*/
-/*
-void Quad::setReflectance(glm::vec3 reflectance) {
-	this->reflectance = reflectance;
-}*/
-

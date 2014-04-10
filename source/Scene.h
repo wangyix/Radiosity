@@ -3,7 +3,7 @@
 #include "glincludes.h"
 #include "SceneShaderInterface.h"
 #include "VisibilityShaderInterface.h"
-#include "Quad.h"
+#include "QuadMesh.h"
 #include "Camera.h"
 
 #include <stdio.h>
@@ -15,14 +15,10 @@
 class Scene {
 private:
 
-	SceneShaderInterface *ssi;
-	VisibilityShaderInterface *vsi;
+	SceneShaderInterface ssi;
+	VisibilityShaderInterface vsi;
 
-	int numQuads;
-	Quad *quads;
-
-	float *quadPositions;
-	int *quadIds;
+	QuadMesh quadMesh;
 
 	Camera camera;
 

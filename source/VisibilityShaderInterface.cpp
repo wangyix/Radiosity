@@ -46,7 +46,7 @@ void VisibilityShaderInterface::init() {
 
 
 void VisibilityShaderInterface::setVertices(int numVertices,
-	const float *positions, const int *quadIds) {
+	const float *positions, const int *ids) {
 
 	this->numVertices = numVertices;
 
@@ -60,8 +60,9 @@ void VisibilityShaderInterface::setVertices(int numVertices,
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, quadIdVbo);
-	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(int), quadIds, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(int), ids, GL_STATIC_DRAW);
+	//glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, 0, 0);	// doesn't work for ints for some reason
+	glVertexAttribIPointer(1, 1, GL_INT, 0, 0);
 	glEnableVertexAttribArray(1);
 
 	Utils::exitOnGLError("ERROR: could not set up vbos");

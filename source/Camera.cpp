@@ -10,9 +10,6 @@ Camera::Camera()
 	updateProj();
 }
 
-Camera::~Camera() {
-}
-
 
 void Camera::setPosition(const glm::vec3 &position) {
 	this->position = position;
