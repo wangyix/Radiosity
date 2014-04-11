@@ -88,6 +88,7 @@ void Scene::update(GLFWwindow *window, double delta) {
 
 
 void Scene::render() {
+	
 	if (testFlag) {
 	
 	ssi.setModelViewProj(camera.getViewProj());
@@ -109,7 +110,7 @@ void Scene::close() {
 	
 	ssi.close();
 
-	//vsi.close();
+	vsi.close();
 
 	quadMesh.unload();
 }

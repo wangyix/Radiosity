@@ -34,60 +34,6 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	Utils::exitOnGLError("ERROR: could not create vsi shader program");
 	
 	
-	
-	/*
-	
-	// create framebuffer for use as render target
-	glGenFramebuffers(1, &visFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, visFramebuffer);
-
-	// create texture for rendering to
-	glGenTextures(1, &visTexture);
-
-	glBindTexture(GL_TEXTURE_2D, visTexture);
-
-	// give it empty image initially	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, VIS_BUFFER_WIDTH,
-			VIS_BUFFER_HEIGHT, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
-
-	// set filtering to nearest: we don't want interpolation of ID values
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	// border color should be 0 by default
-
-	
-	// create a depth buffer
-	glGenRenderbuffers(1, &visDepth);
-	glBindRenderbuffer(GL_RENDERBUFFER, visDepth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
-		VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, visDepth);
-	
-
-	// attach to frame buffer object
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, visTexture, 0);
-
-
-	// set list of draw buffers
-	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, drawBuffers);
-
-	
-	// check framebuffer is ok
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "ERROR: could not create framebuffer for visibility shader");
-		printf("Press enter to exit...");
-		getchar();
-		exit(EXIT_FAILURE);
-	}
-
-	//Utils::exitOnGLError("ERROR: coud not create framebuffer");
-	*/
-
-
-	
 	this->numVertices = numVertices;
 
 	// set up vao, vbos
@@ -109,6 +55,53 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	glEnableVertexAttribArray(1);
 
 	Utils::exitOnGLError("ERROR: could not set up vsi vbos");
+
+
+
+	// create framebuffer for use as render target
+	
+	glGenFramebuffers(1, &visFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, visFramebuffer);
+
+	// create texture for rendering to, give it empty image initially
+	glGenTextures(1, &visTexture);
+	glBindTexture(GL_TEXTURE_2D, visTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, VIS_BUFFER_WIDTH,
+			VIS_BUFFER_HEIGHT, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	// set filtering to nearest: we don't want interpolation of ID values
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);	// border color should be 0 by default
+	// attach texture as color attachment 0
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, visTexture, 0);
+
+	// create a depth buffer, attach to framebuffer
+	glGenRenderbuffers(1, &visDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, visDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+		VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
+	// attach depth as depth attachment
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, visDepth);
+	
+	// set list of draw buffers: only the visibility texture (color attachment 0) is rendered to
+	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, drawBuffers);
+
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// check framebuffer is ok
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		fprintf(stderr, "ERROR: could not create vsi framebuffer \
+						(failed to return GL_FRAMEBUFFER_COMPLETE)");
+		printf("Press enter to exit...");
+		getchar();
+		exit(EXIT_FAILURE);
+	}
+
+	Utils::exitOnGLError("ERROR: coud not create vsi framebuffer");
 }
 
 
@@ -135,10 +128,22 @@ void VisibilityShaderInterface::setModelView(const glm::mat4 &modelView) {
 
 
 void VisibilityShaderInterface::draw() {
-	/*
+	
+	// set framebuffer, viewport
+	GLint vp[4];
+	glGetIntegerv(GL_VIEWPORT, vp);
 	glBindFramebuffer(GL_FRAMEBUFFER, visFramebuffer);
 	glViewport(0, 0, VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
-	*/
+
+	
+	// clear color attachment 0 and depth of framebuffer
+	GLint clearColor[] = {0, 0, 0, 0};
+	glClearBufferiv(GL_COLOR, 0, clearColor);
+	GLfloat clearDepth[] = {1.0f};
+	glClearBufferfv(GL_DEPTH, 0, clearDepth);
+
+
+	// draw patch IDs
 
 	glUseProgram(shaderProgram);
 
@@ -147,27 +152,35 @@ void VisibilityShaderInterface::draw() {
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawArrays(GL_PATCHES, 0, numVertices);
 
-	/*
-	// clean up
+	
+	// unbind framebuffer, restore original viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, vp[2], vp[3]);
 	
 	
 	// read back
+	glBindTexture(GL_TEXTURE_2D, visTexture);
 	unsigned int *ids = new unsigned int[VIS_BUFFER_WIDTH*VIS_BUFFER_HEIGHT];
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ids);
-
-	for (int i=200; i<201; i++) {
+	bool nonZero = false;
+	for (int i=0; i<VIS_BUFFER_HEIGHT; i++) {
 		for (int j=0; j<VIS_BUFFER_WIDTH; j++) {
-			printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
+			
+			//printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
+			if (ids[i*VIS_BUFFER_WIDTH+j] != 0) {
+				nonZero = true;
+			}
 		}
-		printf("\n");
+		//printf("\n");
 	}
 	delete[] ids;
 
-	Utils::exitOnGLError("ERROR: end of draw()");
-	getchar();
-	exit(1);
-	*/
+	if (nonZero)
+		printf("1");
+	else
+		printf("0");
+
+	//getchar();
 }
 
 
