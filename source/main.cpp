@@ -10,7 +10,7 @@
 #define WINDOW_TITLE "Radiosity"
 
 
-Scene *scene = 0;
+Scene scene;
 
 int frameCount = 0;
 int fps = 0;
@@ -37,10 +37,6 @@ void init( void )
 	fprintf(stdout, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
 
 
-	scene = new Scene();
-	scene->init();
-
-
 	glClearColor( 0.0, 0.0f, 0.0f, 0.0f );
 
 	glEnable(GL_DEPTH_TEST);
@@ -53,14 +49,16 @@ void init( void )
 	Utils::exitOnGLError("ERROR: could not set culling options");
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// TEST!! wireframe
+
+
+	scene.init();
 }
 
 
 void reshape( GLFWwindow* window, int w, int h )
 {
 	glViewport( 0, 0, (GLsizei)w, (GLsizei)h );
-	if (scene)
-		scene->onResize(w, h);
+	scene.onResize(w, h);
 }
 
 void update(GLFWwindow* window, double delta) {
@@ -73,7 +71,7 @@ void update(GLFWwindow* window, double delta) {
 		elapsed = 0.0;
 		frameCount = 0;
 	}
-	scene->update(window, delta);
+	scene.update(window, delta);
 }
 
 
@@ -81,16 +79,14 @@ void display(void)
 {
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	scene->render();
+	scene.render();
 
 	glFlush();
 	frameCount++;
 }
 
 void close() {
-	scene->close();
-	delete scene;
-	scene = 0;
+	scene.close();
 }
 
 
@@ -144,7 +140,8 @@ int main( void )
 	double t_old = 0.f;
 	double dt;
 
-	char *windowTitle = new char[strlen(WINDOW_TITLE)+20];
+	int titleBufferLength = strlen(WINDOW_TITLE)+20;
+	char *windowTitle = new char[titleBufferLength];
 
 	for (;;)
 	{
@@ -158,7 +155,8 @@ int main( void )
 		display();
 
 		// update fps counter in window title
-		sprintf(windowTitle, "%s    FPS: %d", WINDOW_TITLE, fps);
+		sprintf_s(windowTitle, titleBufferLength,
+				"%s    FPS: %d", WINDOW_TITLE, fps);
 		glfwSetWindowTitle(window, windowTitle);
 		
 		glfwSwapBuffers(window);

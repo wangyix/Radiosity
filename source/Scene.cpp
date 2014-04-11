@@ -1,23 +1,21 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(), vsi(), quadMesh(){
+	: ssi(), vsi(), quadMesh(), testFlag(false), testKeyDown(false){
 }
 
 int Scene::init() {
 
 	quadMesh.load("./scenefiles/cornell_box.txt");
-
-	ssi.init();
-	ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
+	
+	ssi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
-
-	/*
-	vsi.init();
-	vsi.setNearFar(0.0f, 1000.0f);
-	vsi.setVertices(quadMesh.getNumVertices(),
+	
+	
+	vsi.init(quadMesh.getNumVertices(),
 		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
-	*/
+	vsi.setNearFar(0.0f, 1000.0f);
+	
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
@@ -76,20 +74,35 @@ void Scene::update(GLFWwindow *window, double delta) {
 	}
 	prevX = x;
 	prevY = y;
+
+
+
+	// TEST!!!! toggle testFlag if F is pressed
+	bool down = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
+	if (down && !testKeyDown) {
+		testFlag = !testFlag;
+	}
+	testKeyDown = down;
+	
 }
 
 
 void Scene::render() {
-
+	if (testFlag) {
+	
 	ssi.setModelViewProj(camera.getViewProj());
-
 	for (int i=0; i<quadMesh.getNumQuads(); i++) {
 		ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
 		ssi.draw(quadMesh.getBaseVertex(i));
 	}
+	
 
-	//vsi.setModelView(camera.getView());
-	//vsi.draw();
+	} else {
+		
+	vsi.setModelView(camera.getView());
+	vsi.draw();
+	
+	}
 }
 
 void Scene::close() {

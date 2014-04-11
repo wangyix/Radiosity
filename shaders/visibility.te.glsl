@@ -8,9 +8,9 @@ uniform vec2 _nearFar;	// near and far planes
 
 
 in vec3 tcPosition[];
-in int tcQuadId[];
+in uint tcQuadId[];
 
-out int teQuadId;
+out uint teQuadId;
 
 // built-in variables:
 //in vec3 gl_TessCoord;		// normalized coordinates of this patch point

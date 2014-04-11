@@ -22,6 +22,9 @@ private:
 
 	Camera camera;
 
+	bool testKeyDown;
+	bool testFlag;
+
 public:
 
 	Scene();

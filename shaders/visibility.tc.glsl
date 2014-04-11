@@ -5,11 +5,11 @@ layout(vertices = 4) out;
 
 
 in vec3 vPosition[];
-in int vQuadId[];
+in uint vQuadId[];
 in float vTessLevel[];
 
 out vec3 tcPosition[];
-out int tcQuadId[];
+out uint tcQuadId[];
 
 // built-in variables:
 //in int gl_InvocationID;

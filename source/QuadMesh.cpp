@@ -99,7 +99,7 @@ void QuadMesh::load(char* filepath) {
 
 void QuadMesh::unload() {
 
-	for (int i=0; i<quads.size(); i++) {
+	for (unsigned int i=0; i<quads.size(); i++) {
 		quads[i].closeTextures();
 	}
 	quads.clear();
@@ -126,7 +126,7 @@ const float *QuadMesh::getTexcoordsArray() const {
 	return &texcoords[0];
 }
 
-const int *QuadMesh::getIdsArray() const {
+const unsigned int *QuadMesh::getIdsArray() const {
 	return &ids[0];
 }
 
@@ -165,7 +165,7 @@ void QuadMesh::updateVerticesArrays() {
 		corners[2] = corners[1] + quads[i].getV();
 		corners[3] = corners[0] + quads[i].getV();
 
-		for (int j=0; j<4; j++) {
+		for (unsigned int j=0; j<4; j++) {
 			positions[iPos++] = corners[j].x;
 			positions[iPos++] = corners[j].y;
 			positions[iPos++] = corners[j].z;

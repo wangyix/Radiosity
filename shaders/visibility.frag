@@ -1,35 +1,37 @@
 #version 400
 
 
-in int teQuadId;
+in uint teQuadId;
 
-//out int fColor;
+layout(location=0) out vec4 fColor;	// FOR TESTING!!!!!!!
+//layout(location=0) out uvec4 fId;	// write to render target 1 for now
 
 void main(void) {
 	
-	//fColor = teQuadId;
-
+	//fId = uvec4(teQuadId, 0, 0, 0);
+	
+	
 	// TEST!!!!
 	switch (teQuadId % 7) {
 	case 0:
-		gl_FragColor = vec4(1,0,0,1);
+		fColor = vec4(1,0,0,1);
 		break;
 	case 1:
-		gl_FragColor = vec4(0,1,0,1);
+		fColor = vec4(0,1,0,1);
 		break;
 	case 2:
-		gl_FragColor = vec4(0,0,1,1);
+		fColor = vec4(0,0,1,1);
 		break;
 	case 3:
-		gl_FragColor = vec4(1,1,0,1);
+		fColor = vec4(1,1,0,1);
 		break;
 	case 4:
-		gl_FragColor = vec4(1,0,1,1);
+		fColor = vec4(1,0,1,1);
 		break;
 	case 5:
-		gl_FragColor = vec4(0,1,1,1);
+		fColor = vec4(0,1,1,1);
 		break;
 	default:
-		gl_FragColor = vec4(1,1,1,1);
+		fColor = vec4(1,1,1,1);
 	}
 }

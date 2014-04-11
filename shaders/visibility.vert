@@ -5,10 +5,10 @@ uniform mat4 _modelView;
 
 
 layout(location=0) in vec3 position;
-layout(location=1) in int quadId;
+layout(location=1) in uint quadId;
 
 out vec3 vPosition;
-out int vQuadId;
+out uint vQuadId;
 out float vTessLevel;
 
 

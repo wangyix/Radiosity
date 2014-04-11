@@ -17,7 +17,7 @@ private:
 	// vertices arrays
 	std::vector<float> positions;
 	std::vector<float> texcoords;
-	std::vector<int> ids;
+	std::vector<unsigned int> ids;
 
 public:
 
@@ -33,7 +33,7 @@ public:
 
 	const float *getPositionsArray() const;
 	const float *getTexcoordsArray() const;
-	const int *getIdsArray() const;
+	const unsigned int *getIdsArray() const;
 
 	int getBaseVertex(int quadIndex) const;
 

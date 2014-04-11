@@ -3,6 +3,9 @@
 #include "glincludes.h"
 #include "Utils.h"
 
+#define VIS_BUFFER_WIDTH 512
+#define VIS_BUFFER_HEIGHT 512
+
 
 class VisibilityShaderInterface {
 
@@ -12,26 +15,34 @@ private:
 	GLuint tessControlShader;
 	GLuint tessEvalShader;
 	GLuint fragShader;
-
-	int numVertices;
-	GLuint positionVbo;
-	GLuint quadIdVbo;
-
+	
+	// uniform locations
 	GLint modelView;
 	GLint nearFar;
+
+	int numVertices;
+	GLuint vao;
+	GLuint positionVbo;
+	GLuint idVbo;
+
+	GLuint visFramebuffer;
+	GLuint visTexture;
+	GLuint visDepth;
 
 public:
 	
 	VisibilityShaderInterface();
 	
-	void init();
+	void init(int numVertices, const float *positions, const unsigned int *ids);
 	
-	void setVertices(int numVertices, const float *positions, const int *ids);
 
 	void setNearFar(float near, float far);
 	void setModelView(const glm::mat4 &modelView);
 
 	void draw();
+
+
+	void renderVisibilityBuffer();
 
 	void close();
 };

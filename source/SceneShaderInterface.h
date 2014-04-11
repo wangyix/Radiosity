@@ -13,6 +13,7 @@ private:
 
 	int numVertices;
 	int numIndices;
+	GLuint vao;
 	GLuint positionVbo;
 	GLuint texcoordVbo;
 	GLuint indexVbo;
@@ -23,8 +24,7 @@ private:
 public:
 	SceneShaderInterface();
 	
-	void init();
-	void setVertices(int numVertices, const float *positions, const float *texcoords,
+	void init(int numVertices, const float *positions, const float *texcoords,
 		int numIndices, const unsigned short *indices);
 	void setModelViewProj(const glm::mat4 &modelViewProj);
 	void setTexture(GLuint texture);
