@@ -28,9 +28,8 @@ void SceneShaderInterface::init(int numVertices, const float *positions, const f
 	modelViewProj = glGetUniformLocation(shaderProgram, "_modelViewProj");
 	tex = glGetUniformLocation(shaderProgram, "_tex");
 
+	// assign texture units to tex uniforms
 	glUseProgram(shaderProgram);
-
-	// use texture unit 0 for tex
 	glUniform1i(tex, 0);	
 
 	Utils::exitOnGLError("ERROR: could not create ssi shader program");
@@ -82,7 +81,6 @@ void SceneShaderInterface::setTexture(GLuint texture) {
 
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glBindSampler(0, 0);	// use texture's sampler state
 }
 
 
@@ -105,7 +103,9 @@ void SceneShaderInterface::close() {
 	
 	glGetError();
 	
-	// destroy vbos
+	// destroy vao, vbos
+
+	glDeleteVertexArrays(1, &vao);
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
@@ -117,7 +117,7 @@ void SceneShaderInterface::close() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &indexVbo);
 
-	Utils::exitOnGLError("ERROR: could not destroy ssi vbos");
+	Utils::exitOnGLError("ERROR: could not destroy ssi vao, vbos");
 
 
 	// destroy shaders

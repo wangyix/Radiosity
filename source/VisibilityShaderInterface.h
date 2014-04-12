@@ -26,7 +26,7 @@ private:
 	GLuint idVbo;
 
 	// framebuffer for rendering to
-	GLuint visFramebuffer;
+	GLuint fbo;
 	GLuint visTexture;
 	GLuint visDepth;
 

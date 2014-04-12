@@ -169,7 +169,7 @@ void QuadMesh::updateVerticesArrays() {
 			positions[iPos++] = corners[j].x;
 			positions[iPos++] = corners[j].y;
 			positions[iPos++] = corners[j].z;
-			ids[iId++] = i+1;	// IDs start at 1
+			ids[iId++] = quads[i].getId();
 		}
 
 		texcoords[iTex++] = 0.0f;

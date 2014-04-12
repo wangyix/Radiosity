@@ -29,13 +29,8 @@ void main() {
 	vec3 hemiPos = normalize(viewPos);
 	float fMinusN = _nearFar.y - _nearFar.x;
 	gl_Position.xy = hemiPos.xy * fMinusN;
-	
-	/*
-	vec3 hemiPos = normalize(viewPos);
-	float fMinusN = _nearFar.y - _nearFar.x;
-	gl_Position.xy = hemiPos.xy / (1.0f-hemiPos.z) * fMinusN;
-	*/
+	//gl_Position.xy = hemiPos.xy / (1.0-hemiPos.z) * fMinusN;
 
-	gl_Position.z = (-2.0f*viewPos.z - _nearFar.x - _nearFar.y);
+	gl_Position.z = (-2.0*viewPos.z - _nearFar.x - _nearFar.y);
 	gl_Position.w = fMinusN;
 }

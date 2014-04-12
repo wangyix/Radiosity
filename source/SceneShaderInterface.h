@@ -10,6 +10,9 @@ private:
 	GLuint shaderProgram;
 	GLuint vertShader;
 	GLuint fragShader;
+	
+	GLint modelViewProj;
+	GLint tex;
 
 	int numVertices;
 	int numIndices;
@@ -17,9 +20,6 @@ private:
 	GLuint positionVbo;
 	GLuint texcoordVbo;
 	GLuint indexVbo;
-
-	GLint modelViewProj;
-	GLint tex;
 
 public:
 	SceneShaderInterface();

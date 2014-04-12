@@ -3,6 +3,7 @@
 #include "glincludes.h"
 #include "SceneShaderInterface.h"
 #include "VisibilityShaderInterface.h"
+#include "ReconstructShaderInterface.h"
 #include "QuadMesh.h"
 #include "Camera.h"
 
@@ -17,8 +18,11 @@ private:
 
 	SceneShaderInterface ssi;
 	VisibilityShaderInterface vsi;
+	ReconstructShaderInterface rsi;
 
 	QuadMesh quadMesh;
+	
+	Quad *shooter;
 
 	Camera camera;
 

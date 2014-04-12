@@ -7,11 +7,16 @@
 
 class Quad {
 
+private:
+	static unsigned int nextId;
+
 public:
 	static const unsigned short indices[6];
 	static const int numIndices;
 
 private:
+
+	unsigned int id;
 
 	glm::vec3 position;	// bottom-left corner
 	glm::vec3 u;
@@ -20,9 +25,14 @@ private:
 	glm::vec3 reflectance;
 
 	// pingpong buffers
+	GLuint currentRadiosityTex;
+	GLuint nextRadiosityTex;
 	GLuint radiosityTex;
-	GLuint residualTex;
 	GLuint radiosityTexB;
+	
+	GLuint currentResidualTex;
+	GLuint nextResidualTex;
+	GLuint residualTex;
 	GLuint residualTexB;
 
 public:
@@ -35,8 +45,13 @@ public:
 	void initTextures(const glm::vec3 &emittance);
 	void closeTextures();
 
+	void swapTextures();	// call after every reconstruction shader pass
+
+	glm::vec3 getResidualPower() const;
+
 	GLuint getRadiosityTex() const;
 
+	unsigned int getId() const;
 	glm::vec3 getPosition() const;
 	glm::vec3 getU() const;
 	glm::vec3 getV() const;

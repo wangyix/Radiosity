@@ -6,7 +6,7 @@ VisibilityShaderInterface::VisibilityShaderInterface()
 	numVertices(0),
 	vao(0), positionVbo(0), idVbo(0),
 	modelView(-1), nearFar(-1),
-	visFramebuffer(0), visTexture(0), visDepth(0) {
+	fbo(0), visTexture(0), visDepth(0) {
 }
 
 void VisibilityShaderInterface::init(int numVertices, const float *positions, const unsigned int *ids) {
@@ -58,10 +58,10 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 
 
 
-	// create framebuffer for use as render target
+	// set up fbo
 	
-	glGenFramebuffers(1, &visFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, visFramebuffer);
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	// create texture for rendering to, give it empty image initially
 	glGenTextures(1, &visTexture);
@@ -88,20 +88,19 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1, drawBuffers);
 
-	// unbind framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
 	// check framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "ERROR: could not create vsi framebuffer \
+		fprintf(stderr, "ERROR: could not create vsi fbo \
 						(failed to return GL_FRAMEBUFFER_COMPLETE)");
 		printf("Press enter to exit...");
 		getchar();
 		exit(EXIT_FAILURE);
 	}
 
-	Utils::exitOnGLError("ERROR: coud not create vsi framebuffer");
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	Utils::exitOnGLError("ERROR: coud not set up vsi fbo");
 }
 
 
@@ -132,7 +131,7 @@ void VisibilityShaderInterface::draw() {
 	// set framebuffer, viewport
 	GLint vp[4];
 	glGetIntegerv(GL_VIEWPORT, vp);
-	glBindFramebuffer(GL_FRAMEBUFFER, visFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
 
 	
@@ -158,12 +157,13 @@ void VisibilityShaderInterface::draw() {
 	glViewport(0, 0, vp[2], vp[3]);
 	
 	
-	// read back
+	/*
+	// TEST!!! read back
 	glBindTexture(GL_TEXTURE_2D, visTexture);
 	unsigned int *ids = new unsigned int[VIS_BUFFER_WIDTH*VIS_BUFFER_HEIGHT];
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ids);
 	bool nonZero = false;
-	for (int i=0; i<VIS_BUFFER_HEIGHT; i++) {
+	for (int i=200; i<201; i++) {
 		for (int j=0; j<VIS_BUFFER_WIDTH; j++) {
 			
 			//printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
@@ -174,13 +174,12 @@ void VisibilityShaderInterface::draw() {
 		//printf("\n");
 	}
 	delete[] ids;
-
 	if (nonZero)
 		printf("1");
 	else
 		printf("0");
-
 	//getchar();
+	*/
 }
 
 
@@ -195,7 +194,9 @@ void VisibilityShaderInterface::close() {
 	
 	glGetError();
 	
-	// destroy vbos
+	// destroy vao, vbos
+
+	glDeleteVertexArrays(1, &vao);
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
@@ -204,8 +205,15 @@ void VisibilityShaderInterface::close() {
 	glDeleteBuffers(1, &positionVbo);
 	glDeleteBuffers(1, &idVbo);
 
-	Utils::exitOnGLError("ERROR: could not destroy vsi vbos");
+	Utils::exitOnGLError("ERROR: could not destroy vsi vao, vbos");
 
+	// destroy fbo
+
+	glDeleteFramebuffers(1, &fbo);
+	glDeleteTextures(1, &visTexture);
+	glDeleteRenderbuffers(1, &visDepth);
+
+	Utils::exitOnGLError("ERROR: could not destroy vsi fbo");
 
 	// destroy shaders
 

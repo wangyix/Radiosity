@@ -1,7 +1,8 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(), vsi(), quadMesh(), testFlag(false), testKeyDown(false){
+	: ssi(), vsi(), rsi(), quadMesh(), shooter(0),
+	testFlag(false), testKeyDown(false){
 }
 
 int Scene::init() {
@@ -10,12 +11,13 @@ int Scene::init() {
 	
 	ssi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
-	
-	
+		
 	vsi.init(quadMesh.getNumVertices(),
 		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
 	vsi.setNearFar(0.0f, 1000.0f);
 	
+	rsi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
+		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
@@ -88,22 +90,34 @@ void Scene::update(GLFWwindow *window, double delta) {
 
 
 void Scene::render() {
-	
-	if (testFlag) {
-	
-	ssi.setModelViewProj(camera.getViewProj());
-	for (int i=0; i<quadMesh.getNumQuads(); i++) {
-		ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
-		ssi.draw(quadMesh.getBaseVertex(i));
-	}
-	
 
-	} else {
-		
-	vsi.setModelView(camera.getView());
-	vsi.draw();
+	// pick shooter
+	static int shooterIndex = 0;
+
+	shooter = &quadMesh.getQuad(shooterIndex);
+
+
+	// render visibility pass
+	//vsi.setModelView(shooter->
+
+
+
 	
-	}
+	shooterIndex++;
+	if (shooterIndex==quadMesh.getNumQuads())
+		shooterIndex=0;
+
+	/*
+	if (testFlag) {
+		ssi.setModelViewProj(camera.getViewProj());
+		for (int i=0; i<quadMesh.getNumQuads(); i++) {
+			ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
+			ssi.draw(quadMesh.getBaseVertex(i));
+		}
+	} else {
+		vsi.setModelView(camera.getView());
+		vsi.draw();
+	}*/
 }
 
 void Scene::close() {
@@ -111,6 +125,8 @@ void Scene::close() {
 	ssi.close();
 
 	vsi.close();
+
+	rsi.close();
 
 	quadMesh.unload();
 }

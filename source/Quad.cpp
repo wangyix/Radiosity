@@ -1,12 +1,18 @@
 #include "Quad.h"
 
+unsigned int Quad::nextId = 1;
+
 const unsigned short Quad::indices[] = {0,1,2,0,2,3};
 const int Quad::numIndices = 6;
 
 
 
 Quad::Quad(const glm::vec3 &bottomLeft, const glm::vec3 &bottomRight, const glm::vec3 &topLeft, 
-		const glm::vec3 &reflectance) {
+		const glm::vec3 &reflectance) 
+		:  currentRadiosityTex(0), nextRadiosityTex(0), radiosityTex(0), radiosityTexB(0),
+		currentResidualTex(0), nextResidualTex(0), residualTex(0), residualTexB(0) {
+
+	id = nextId++;
 	position = bottomLeft;
 	u = bottomRight - bottomLeft;
 	v = topLeft - bottomLeft;
@@ -54,12 +60,12 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 	// allocate texture radiosityTex
 	glGenTextures(1, &radiosityTex);
 	glBindTexture(GL_TEXTURE_2D, radiosityTex);
-	// filtering params
+	// set texture params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// no mipmaps required
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// wrap params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 	// create texture
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
@@ -107,6 +113,12 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 		0, GL_RGB, GL_FLOAT, initialPixels);
 
 
+	// we'll render to B versions of the rad and res textures first
+	currentRadiosityTex = radiosityTex;
+	currentResidualTex = residualTex;
+	nextRadiosityTex = radiosityTexB;
+	nextResidualTex = residualTexB;
+
 	delete initialPixels;
 }
 
@@ -119,9 +131,32 @@ void Quad::closeTextures() {
 }
 
 
+glm::vec3 Quad::getResidualPower() const {
+
+	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
+	
+	glm::vec3 residualIrradiance;
+	glGetTexImage(GL_TEXTURE_2D, 4????????, GL_RGB, GL_FLOAT, 
+			glm::value_ptr(residualIrradiance));
+}
+
+void Quad::swapTextures() {
+
+	GLuint temp;
+	
+	temp = currentRadiosityTex;
+	currentRadiosityTex = nextRadiosityTex;
+	nextRadiosityTex = temp;
+
+	temp = currentResidualTex;
+	currentResidualTex = nextResidualTex;
+	nextResidualTex = currentResidualTex;
+}
 
 
-
+unsigned int Quad::getId() const {
+	return id;
+}
 
 glm::vec3 Quad::getPosition() const {
 	return position;
@@ -138,5 +173,5 @@ glm::vec3 Quad::getV() const {
 
 
 GLuint Quad::getRadiosityTex() const {
-	return radiosityTex;
+	return currentRadiosityTex;
 }
