@@ -2,7 +2,7 @@
 
 Scene::Scene()
 	: ssi(), vsi(), rsi(), quadMesh(), shooter(0),
-	testFlag(false), testKeyDown(false){
+	testFlag(false), testKeyDown(false) {
 }
 
 int Scene::init() {
@@ -14,7 +14,7 @@ int Scene::init() {
 		
 	vsi.init(quadMesh.getNumVertices(),
 		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
-	vsi.setNearFar(0.0f, 1000.0f);
+	vsi.setNearFar(0.1f, 1000.0f);	// do not set near to 0: shooter may render itself in front of everything
 	
 	rsi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
@@ -90,22 +90,31 @@ void Scene::update(GLFWwindow *window, double delta) {
 
 
 void Scene::render() {
-
-	// pick shooter
-	static int shooterIndex = 0;
-
-	shooter = &quadMesh.getQuad(shooterIndex);
-
-
-	// render visibility pass
-	//vsi.setModelView(shooter->
-
-
-
 	
-	shooterIndex++;
-	if (shooterIndex==quadMesh.getNumQuads())
-		shooterIndex=0;
+	// set shooter as quad with largest residual power
+	float maxResIrradMag = -1.0f;
+	for (int i=0; i<quadMesh.getNumQuads(); i++) {
+		
+		Quad *quad = &quadMesh.getQuad(i);
+		glm::vec3 resIrrad = quad->getResidualIrradiance();
+		float resIrradMag = glm::length(resIrrad);
+		
+		if (resIrradMag > maxResIrradMag) {
+			maxResIrradMag = resIrradMag;
+			shooter = quad;
+		}
+	}
+
+	if (maxResIrradMag <= 0.0f)	{// SET SOME THRESHOLD to stop shooting if residual irradiance low enough
+	}
+	
+	const int shooterRows = 4;
+	const int shooterColumns = 4;
+
+	// render visibility texture from shooter's perspective
+	vsi.setModelView(
+	
+
 
 	/*
 	if (testFlag) {

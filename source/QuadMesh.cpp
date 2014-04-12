@@ -50,20 +50,21 @@ void QuadMesh::load(char* filepath) {
 				break;
 
 			// read corner indices, width and height
-			int bl, br, tl, w, h;
+			int bl, br, tl, cols, rows;
 			float rr, rg, rb;
 			int numEmitting;
 			sscanf_s(line.c_str(), "%d %d %d %d %d %f %f %f %d",
-				&bl, &br, &tl, &w, &h, &rr, &rg, &rb, &numEmitting);
+				&bl, &br, &tl, &cols, &rows, &rr, &rg, &rb, &numEmitting);
 			
 			// read emittance info (if any), record emittance of each quad
-			std::vector<glm::vec3> emittances = std::vector<glm::vec3>(h*w, glm::vec3(0.0f, 0.0f, 0.0f));
-			int i, j;
+			std::vector<glm::vec3> emittances = std::vector<glm::vec3>(cols*rows,
+					glm::vec3(0.0f, 0.0f, 0.0f));
+			int col, row;
 			float er, eg, eb;
 			int linesRead = 0;
 			while (linesRead<numEmitting && getNextDataLine(ifs, line)) {
-				sscanf_s(line.c_str(), "%d %d %f %f %f", &i, &j, &er, &eg, &eb);
-				emittances[i*w+j] = glm::vec3(er, eg, eb);
+				sscanf_s(line.c_str(), "%d %d %f %f %f", &col, &row, &er, &eg, &eb);
+				emittances[col*rows+row] = glm::vec3(er, eg, eb);
 				linesRead++;
 			}
 
@@ -74,21 +75,20 @@ void QuadMesh::load(char* filepath) {
 			glm::vec3 reflectance = glm::vec3(rr, rg, rb);
 			
 			// create grid of quads
-			glm::vec3 u = (bottomRight-bottomLeft) / (float)w;
-			glm::vec3 v = (topLeft-bottomLeft) / (float)h;
-			glm::vec3 rowBase = bottomLeft;
+			glm::vec3 u = (bottomRight-bottomLeft) / (float)cols;
+			glm::vec3 v = (topLeft-bottomLeft) / (float)rows;
+			glm::vec3 colBase = bottomLeft;
 			glm::vec3 base;
-			int k = 0;
-			for (int i=0; i<h; i++) {
-				base = rowBase;
-				for (int j=0; j<w; j++) {
-					quads.push_back(Quad(base, base+u, base+v,
-							reflectance));
-					quads.back().initTextures(emittances[i*w+j]);
-					base += u;
+			for (int i=0; i<cols; i++) {
+				base = colBase;
+				for (int j=0; j<rows; j++) {
+					quads.push_back(Quad(base, u, v, reflectance));
+					quads.back().initTextures(emittances[i*rows+j]);
+					base += v;
 				}
-				rowBase += v;
+				colBase += u;
 			}
+
 		}
 		positions.clear();
 	}
@@ -114,7 +114,7 @@ int QuadMesh::getNumVertices() const {
 	return 4*quads.size();
 }
 
-const Quad &QuadMesh::getQuad(int i) const {
+Quad &QuadMesh::getQuad(int i){
 	return quads[i];
 }
 

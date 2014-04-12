@@ -29,7 +29,7 @@ public:
 	int getNumQuads() const;
 	int getNumVertices() const;
 
-	const Quad &getQuad(int i) const;
+	Quad &getQuad(int i);
 
 	const float *getPositionsArray() const;
 	const float *getTexcoordsArray() const;
