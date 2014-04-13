@@ -42,8 +42,9 @@ public:
 
 	void draw();
 
-
-	void renderVisibilityBuffer();
-
 	void close();
+
+
+
+	GLuint getVisTexture() const;
 };

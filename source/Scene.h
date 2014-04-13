@@ -22,7 +22,7 @@ private:
 
 	QuadMesh quadMesh;
 	
-	const Quad *shooter;
+	Quad *shooter;
 
 	Camera camera;
 

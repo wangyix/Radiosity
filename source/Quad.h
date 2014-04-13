@@ -31,13 +31,10 @@ private:
 	// pingpong buffers
 	GLuint currentRadiosityTex;
 	GLuint nextRadiosityTex;
-	GLuint radiosityTex;
-	GLuint radiosityTexB;
 	
 	GLuint currentResidualTex;
 	GLuint nextResidualTex;
-	GLuint residualTex;
-	GLuint residualTexB;
+
 
 	glm::vec3 residualAvgIrradiance;	// cached
 
@@ -45,6 +42,10 @@ private:
 	int shooterRows;
 	int shooterCols;
 	std::vector<glm::vec3> residualShooterIrradiances;
+
+	int currentShooterRow;
+	int currentShooterCol;
+
 
 public:
 
@@ -56,29 +57,28 @@ public:
 	void initTextures(const glm::vec3 &emittance);
 	void closeTextures();
 
-	
-	void swapTextures();	// call after every reconstruction shader pass
 
-	
+	glm::vec3 getResidualAvgIrradiance() const;
+
 	void selectAsShooter(int shooterLevel);
 
+	bool hasNextShooterCell() const;
+	void getNextShooterCellUniforms(glm::mat4 *view_ptr, glm::vec3 *shooterPower_ptr);
 
 	void clearResidualTex();	// call on shooter at end of each shoot iteration
 	
-	/*
-	void getShooterUniforms(int shooterLevel,	// substructuring info
-			int shooterCol, int shooterRow,
-			glm::mat4 *view, glm::vec3 *shooterPower) const;
-	*/
 	
-	glm::vec3 getResidualAvgIrradiance() const;
+	void swapTextures();	// call after every reconstruction shader pass
+
 
 	unsigned int getId() const;
 	glm::vec3 getPosition() const;
 	glm::vec3 getU() const;
 	glm::vec3 getV() const;
+	glm::vec3 getN() const;
 	GLuint getRadiosityTex() const;
 	GLuint getResidualTex() const;
+	glm::vec3 getReflectance() const;
 
 private:
 

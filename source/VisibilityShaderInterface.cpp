@@ -183,13 +183,6 @@ void VisibilityShaderInterface::draw() {
 }
 
 
-
-void VisibilityShaderInterface::renderVisibilityBuffer() {
-
-
-}
-
-
 void VisibilityShaderInterface::close() {
 	
 	glGetError();
@@ -232,4 +225,10 @@ void VisibilityShaderInterface::close() {
 	glDeleteProgram(shaderProgram);
 
 	Utils::exitOnGLError("ERROR: could not destroy vsi shaders");
+}
+
+
+
+GLuint VisibilityShaderInterface::getVisTexture() const {
+	return visTexture;
 }

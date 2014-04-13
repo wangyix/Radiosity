@@ -96,7 +96,7 @@ void Scene::render() {
 	for (int i=0; i<quadMesh.getNumQuads(); i++) {
 		
 		Quad *quad = &quadMesh.getQuad(i);
-		glm::vec3 resIrrad = quad->getResidualIrradiance();
+		glm::vec3 resIrrad = quad->getResidualAvgIrradiance();
 		float resIrradMag = glm::length(resIrrad);
 		
 		if (resIrradMag > maxResIrradMag) {
@@ -108,13 +108,57 @@ void Scene::render() {
 	if (maxResIrradMag <= 0.0f)	{// SET SOME THRESHOLD to stop shooting if residual irradiance low enough
 	}
 	
-	const int shooterRows = 4;
-	const int shooterColumns = 4;
 
-	// render visibility texture from shooter's perspective
-	vsi.setModelView(
+
+	// shoot residual irradiance from each shooter cell of this shooter
+
+	shooter->selectAsShooter(2);	// 4x4 shooter cells
+
+	glm::mat4 shooterCellView;
+	glm::vec3 shooterCellPower;
+	while (shooter->hasNextShooterCell()) {
+		
+		shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
+		
+		// render visibility texture from shooter's perspective
+		vsi.setModelView(shooterCellView);
+		vsi.draw();
+
+		// set up shooter uniforms for reconstruction pass
+		rsi.setShooterUniforms(shooterCellView, shooterCellPower,
+				vsi.getVisTexture());
+
+		// update each receiving quad's residual
+		for (int i=0; i<quadMesh.getNumQuads(); i++) {
+			
+			Quad receiver = quadMesh.getQuad(i);
+
+			glm::vec4 normalShooterView4 = shooterCellView *
+					glm::vec4(receiver.getN(), 1.0f);
+
+			glm::vec3 normalShooterView = glm::vec3(normalShooterView4.x,
+					normalShooterView4.y, normalShooterView4.z);
+
+			rsi.setReceiverUniforms(receiver.getId(), receiver.getReflectance(),
+					normalShooterView,
+					receiver.getRadiosityTex(), receiver.getResidualTex());
+
+			receiver.swapTextures();
+		}
+
+		shooter->clearResidualTex();
+	}
+
+
+	// render all quads to screen
+
+	ssi.setModelViewProj(camera.getViewProj());
+	for (int i=0; i<quadMesh.getNumQuads(); i++) {
+
+		ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
+		ssi.draw(quadMesh.getBaseVertex(i));
 	
-
+	}
 
 	/*
 	if (testFlag) {
