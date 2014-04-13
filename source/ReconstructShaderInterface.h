@@ -13,6 +13,7 @@ private:
 	GLint modelView;
 	GLint id;
 	GLint reflectance;
+	GLint visTexelSize;
 	GLint shooterPower;
 	GLint normal;
 	GLint visTex;
@@ -37,6 +38,8 @@ public:
 	void init(int numVertices, const float *positions, const float *texcoords,
 			int numIndices, const unsigned short *indices);
 	
+	void setVisTexelSize(float du, float dv);
+
 	void setShooterUniforms(const glm::mat4 &modelView,
 							const glm::vec3 &shooterPower,
 							GLuint visibilityTexture);

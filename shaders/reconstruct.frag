@@ -5,6 +5,7 @@ uniform uint _id;				// ID of receiver quad								// checked
 uniform vec3 _reflectance;		// color of receiver quad							// checked
 
 uniform usampler2D _visTex;		// texture of IDs from visibility pass
+uniform vec2 _visTexelSize;		// offset to use when doing PCF of visTex
 
 uniform vec3 _shooterPower;		// (residual) shooter irradiance * shooter area		// checked
 uniform vec3 _normal;			// normal of receiver in shooter viewspace			// checked
@@ -33,10 +34,51 @@ void main(void) {
 	// convert ndc to texture coordinates [-1,1]->[0,1]
 	vec2 visTexcoord = hemiNdc*0.5 + 0.5;
 
+	/*
 	// see if this receiver texel is visible
 	uint visId = texture2D(_visTex, visTexcoord).x;						// checked
 	float visibility = (visId == _id) ? 1.0 : 0.0;
+	*/
 	
+	float visibility = 0.0;
+	
+	// PCF: if any sample is visible, then this texel is visible
+	// 3x3 samples
+	/*
+	for (int i=-1; i<=1; i++) {
+		for (int j=-1; j<=1; j++) {
+			vec2 sampleTexcoord = visTexcoord
+					+ i * _visTexelSize.x + j * _visTexelSize.y;
+			uint visId = texture2D(_visTex, sampleTexcoord).x;
+			visibility += (visId == _id) ? 1.0 : 0.0;
+		}
+	}*/
+
+	// 5x5 outer ring sample
+	vec2 sampleTexcoord = visTexcoord - 2*_visTexelSize;
+	for (int i=0; i<4; i++) {
+		uint visId = texture2D(_visTex, sampleTexcoord).x;
+		visibility += (visId == _id) ? 1.0 : 0.0;
+		sampleTexcoord.t += _visTexelSize.t;
+	}
+	for (int i=0; i<4; i++) {
+		uint visId = texture2D(_visTex, sampleTexcoord).x;
+		visibility += (visId == _id) ? 1.0 : 0.0;
+		sampleTexcoord.s += _visTexelSize.s;
+	}
+	for (int i=0; i<4; i++) {
+		uint visId = texture2D(_visTex, sampleTexcoord).x;
+		visibility += (visId == _id) ? 1.0 : 0.0;
+		sampleTexcoord.t -= _visTexelSize.t;
+	}
+	for (int i=0; i<4; i++) {
+		uint visId = texture2D(_visTex, sampleTexcoord).x;
+		visibility += (visId == _id) ? 1.0 : 0.0;
+		sampleTexcoord.s -= _visTexelSize.s;
+	}
+	visibility = min(visibility, 1.0);
+
+
 	// calculate form factor: cosi*cosj/(pi*d^2)
 	float cosi = max(-dot(_normal, r), 0.0);
 	float cosj = max(-r.z, 0.0);	// shooter normal in shooter viewspace is simply (0,0,-1)

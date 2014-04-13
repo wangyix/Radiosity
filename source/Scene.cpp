@@ -18,6 +18,8 @@ int Scene::init() {
 	
 	rsi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
+	rsi.setVisTexelSize(1.0f/(float)VisibilityShaderInterface::getVisTextureWidth(),
+		1.0f/(float)VisibilityShaderInterface::getVisTextureHeight());
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
@@ -122,7 +124,7 @@ void Scene::render() {
 
 		// shoot residual irradiance from each shooter cell of this shooter
 
-		shooter->selectAsShooter(5);//5);	// 1x1 shooter cells
+		shooter->selectAsShooter(0);
 
 		glm::mat4 shooterCellView;
 		glm::vec3 shooterCellPower;

@@ -58,7 +58,7 @@ public:
 
 	glm::vec3 getResidualAvgIrradiance() const;
 
-	void selectAsShooter(int shooterLevel);
+	void selectAsShooter(int shooterDensity);
 
 	bool hasNextShooterCell() const;
 	void getNextShooterCellUniforms(glm::mat4 *view_ptr, glm::vec3 *shooterPower_ptr);

@@ -2,7 +2,7 @@
 
 ReconstructShaderInterface::ReconstructShaderInterface()
 	: shaderProgram(0), vertShader(0), fragShader(0),
-	modelView(-1), id(-1), reflectance(-1), shooterPower(-1),
+	modelView(-1), id(-1), reflectance(-1), visTexelSize(-1), shooterPower(-1),
 	normal(-1), visTex(-1), radTex(-1), resTex(-1),
 	numVertices(0), numIndices(0),
 	vao(0), positionVbo(0), texcoordVbo(0), indexVbo(0),
@@ -29,6 +29,7 @@ void ReconstructShaderInterface::init(int numVertices, const float *positions, c
 	modelView = glGetUniformLocation(shaderProgram, "_modelView");
 	id = glGetUniformLocation(shaderProgram, "_id");
 	reflectance = glGetUniformLocation(shaderProgram, "_reflectance");
+	visTexelSize = glGetUniformLocation(shaderProgram, "_visTexelSize");
 	shooterPower = glGetUniformLocation(shaderProgram, "_shooterPower");
 	normal = glGetUniformLocation(shaderProgram, "_normal");
 	visTex = glGetUniformLocation(shaderProgram, "_visTex");
@@ -99,6 +100,14 @@ void ReconstructShaderInterface::init(int numVertices, const float *positions, c
 	Utils::exitOnGLError("ERROR: coud not set up rsi fbo");
 }
 
+
+void ReconstructShaderInterface::setVisTexelSize(float du, float dv) {
+	
+	glUseProgram(shaderProgram);
+
+	glUniform2f(visTexelSize, du, dv);
+
+}
 
 
 void ReconstructShaderInterface::setShooterUniforms(const glm::mat4 &modelView,

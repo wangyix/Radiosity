@@ -72,7 +72,11 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);	// border color should be 0 by default
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	unsigned int borderColor[] = {0, 0, 0, 0};
+	glTexParameterIuiv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+
 	// attach texture as color attachment 0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, visTexture, 0);
 
@@ -233,4 +237,13 @@ void VisibilityShaderInterface::close() {
 
 GLuint VisibilityShaderInterface::getVisTexture() const {
 	return visTexture;
+}
+
+
+int VisibilityShaderInterface::getVisTextureWidth() {
+	return VIS_BUFFER_WIDTH;
+}
+	
+int VisibilityShaderInterface::getVisTextureHeight() {
+	return VIS_BUFFER_HEIGHT;
 }

@@ -47,4 +47,7 @@ public:
 
 
 	GLuint getVisTexture() const;
+
+	static int getVisTextureWidth();
+	static int getVisTextureHeight();
 };
