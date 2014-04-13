@@ -163,23 +163,25 @@ void VisibilityShaderInterface::draw() {
 	unsigned int *ids = new unsigned int[VIS_BUFFER_WIDTH*VIS_BUFFER_HEIGHT];
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ids);
 	bool nonZero = false;
-	for (int i=200; i<201; i++) {
+	for (int i=0; i<VIS_BUFFER_HEIGHT; i++) {
 		for (int j=0; j<VIS_BUFFER_WIDTH; j++) {
 			
-			//printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
+			printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
 			if (ids[i*VIS_BUFFER_WIDTH+j] != 0) {
 				nonZero = true;
 			}
 		}
-		//printf("\n");
+		printf("\n");
 	}
 	delete[] ids;
+	/*
 	if (nonZero)
 		printf("1");
 	else
 		printf("0");
-	//getchar();
 	*/
+	//getchar();
+	
 }
 
 

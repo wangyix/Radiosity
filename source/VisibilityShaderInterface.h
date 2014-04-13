@@ -3,8 +3,8 @@
 #include "glincludes.h"
 #include "Utils.h"
 
-#define VIS_BUFFER_WIDTH 512
-#define VIS_BUFFER_HEIGHT 512
+#define VIS_BUFFER_WIDTH 1024
+#define VIS_BUFFER_HEIGHT 1024
 
 
 class VisibilityShaderInterface {

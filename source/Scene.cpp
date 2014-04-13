@@ -14,7 +14,7 @@ int Scene::init() {
 		
 	vsi.init(quadMesh.getNumVertices(),
 		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
-	vsi.setNearFar(0.1f, 1000.0f);	// do not set near to 0: shooter may render itself in front of everything
+	vsi.setNearFar(0.0001f, 1000.0f);	// do not set near to 0: shooter may render itself in front of everything
 	
 	rsi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
@@ -90,64 +90,87 @@ void Scene::update(GLFWwindow *window, double delta) {
 
 
 void Scene::render() {
-	
-	// set shooter as quad with largest residual power
-	float maxResIrradMag = -1.0f;
-	for (int i=0; i<quadMesh.getNumQuads(); i++) {
-		
-		Quad *quad = &quadMesh.getQuad(i);
-		glm::vec3 resIrrad = quad->getResidualAvgIrradiance();
-		float resIrradMag = glm::length(resIrrad);
-		
-		if (resIrradMag > maxResIrradMag) {
-			maxResIrradMag = resIrradMag;
-			shooter = quad;
-		}
-	}
 
-	if (maxResIrradMag <= 0.0f)	{// SET SOME THRESHOLD to stop shooting if residual irradiance low enough
-	}
+	static int shootIteration = 0;	// for testing!!!!!!!!!!!
+	static bool converged = false;
 	
 
+	if (!converged) {
 
-	// shoot residual irradiance from each shooter cell of this shooter
-
-	shooter->selectAsShooter(2);	// 4x4 shooter cells
-
-	glm::mat4 shooterCellView;
-	glm::vec3 shooterCellPower;
-	while (shooter->hasNextShooterCell()) {
-		
-		shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
-		
-		// render visibility texture from shooter's perspective
-		vsi.setModelView(shooterCellView);
-		vsi.draw();
-
-		// set up shooter uniforms for reconstruction pass
-		rsi.setShooterUniforms(shooterCellView, shooterCellPower,
-				vsi.getVisTexture());
-
-		// update each receiving quad's residual
+		// set shooter as quad with largest residual power
+		float maxResIrradMag = -1.0f;
 		for (int i=0; i<quadMesh.getNumQuads(); i++) {
-			
-			Quad receiver = quadMesh.getQuad(i);
+		
+			Quad *quad = &quadMesh.getQuad(i);
 
-			glm::vec4 normalShooterView4 = shooterCellView *
-					glm::vec4(receiver.getN(), 1.0f);
+			glm::vec3 resIrrad = quad->getResidualAvgIrradiance();
+			float resIrradMag = glm::length(resIrrad);
+		
+			if (resIrradMag > maxResIrradMag) {
+				maxResIrradMag = resIrradMag;
+				shooter = quad;
+			}
+		}
+	
 
-			glm::vec3 normalShooterView = glm::vec3(normalShooterView4.x,
-					normalShooterView4.y, normalShooterView4.z);
 
-			rsi.setReceiverUniforms(receiver.getId(), receiver.getReflectance(),
-					normalShooterView,
-					receiver.getRadiosityTex(), receiver.getResidualTex());
-
-			receiver.swapTextures();
+		if (maxResIrradMag < 0.4f)	{// SET SOME THRESHOLD to stop shooting if residual irradiance low enough
+			converged = true;
 		}
 
+
+
+		// shoot residual irradiance from each shooter cell of this shooter
+
+		shooter->selectAsShooter(5);//5);	// 1x1 shooter cells
+
+		glm::mat4 shooterCellView;
+		glm::vec3 shooterCellPower;
+		while (shooter->hasNextShooterCell()) {
+		
+			shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
+		
+			// render visibility texture from shooter's perspective
+			vsi.setModelView(shooterCellView);
+			vsi.draw();
+
+			// set up shooter uniforms for reconstruction pass
+			rsi.setShooterUniforms(shooterCellView, shooterCellPower,
+					vsi.getVisTexture());
+
+			// update each receiving quad's residual
+			for (int i=0; i<quadMesh.getNumQuads(); i++) {
+			
+				Quad *receiver = &quadMesh.getQuad(i);
+
+				glm::vec4 normalShooterView4 = shooterCellView *
+						glm::vec4(receiver->getN(), 0.0f);
+
+				glm::vec3 normalShooterView = glm::vec3(normalShooterView4.x,
+						normalShooterView4.y, normalShooterView4.z);
+
+				rsi.setReceiverUniforms(receiver->getId(), receiver->getReflectance(),
+						normalShooterView,
+						receiver->getRadiosityTex(), receiver->getResidualTex());
+
+				rsi.draw(quadMesh.getBaseVertex(i), receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
+						Quad::getTexWidth(), Quad::getTexHeight());
+
+				receiver->swapTextures();
+
+
+				//quadMesh.getQuad(0).printRadTex();
+				//quadMesh.getQuad(0).printResTex();
+			}
+		}
 		shooter->clearResidualTex();
+
+		printf("done with shoot iteration %d\n", shootIteration);
+		shootIteration++;
+
 	}
+	
+
 
 
 	// render all quads to screen

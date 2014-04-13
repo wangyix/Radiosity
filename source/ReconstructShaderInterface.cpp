@@ -164,6 +164,32 @@ void ReconstructShaderInterface::draw(int baseVertex,
 
 	// re-enable depth test and depth writes
 	glEnable(GL_DEPTH_TEST);
+
+
+
+	// rebuild mipmaps of textures we rendered to
+
+	glBindTexture(GL_TEXTURE_2D, nextRadTex);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, nextResTex);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	/*
+	// TEST!!! read back new residual texture
+	printf("\n\n\n\n");
+	glBindTexture(GL_TEXTURE_2D, nextResTex);
+	float *irr = new float [3*texWidth*texHeight];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
+	for (int i=0; i<texHeight; i++) {
+		for (int j=0; j<texWidth; j++) {
+			int base = 3*(i*texWidth+j);
+			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
+		}
+		printf("\n");
+	}
+	delete[] irr;
+	*/
 }
 
 

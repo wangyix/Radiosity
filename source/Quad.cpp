@@ -12,7 +12,7 @@ Quad::Quad(const glm::vec3 &position, const glm::vec3 &u, const glm::vec3 &v,
 		const glm::vec3 &reflectance) 
 		:  currentRadiosityTex(0), nextRadiosityTex(0),
 		currentResidualTex(0), nextResidualTex(0),
-		residualAvgIrradiance(0.0f,0.0f,0.0f), shooterRows(0), shooterCols(0),
+		shooterRows(0), shooterCols(0),
 		residualShooterIrradiances(),
 		currentShooterRow(0), currentShooterCol(0) {
 
@@ -47,17 +47,16 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 		for (int j=0; j<RAD_TEX_WIDTH; ++j) {
 			int base = 3 * (i*RAD_TEX_WIDTH + j);
 			if ( (i/4 + j/4)%2==0 ) { 
-				initialPixels[base] = 1.0f;
-				initialPixels[base+1] = 1.0f;
+				initialPixels[base] = 0.0f;
+				initialPixels[base+1] = 0.0f;
 				initialPixels[base+2] = 1.0f;
 			} else {
-				initialPixels[base] = t;
-				initialPixels[base+1] = 0.0;
-				initialPixels[base+2] = 0.0f;
+				initialPixels[base] = emittance.x;
+				initialPixels[base+1] = emittance.y;
+				initialPixels[base+2] = emittance.z;
 			}
 		}
-	}
-	t += 0.01f;*/
+	}*/
 
 
 	// initialize radiosity and residual texture pairs
@@ -70,7 +69,7 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
 		0, GL_RGB, GL_FLOAT, initialPixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -83,7 +82,7 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -96,7 +95,7 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -109,9 +108,10 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
+
 
 	delete[] initialPixels;
 }
@@ -125,16 +125,19 @@ void Quad::closeTextures() {
 }
 
 
-void Quad::updateResidualAvgIrradiance() {
-
-	// read toplevel mipmap (size 1x1) of the residual texture
+glm::vec3 Quad::getResidualAvgIrradiance() const {
 	
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
 
+	glm::vec3 residualAvgIrradiance;
 	glGetTexImage(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL, GL_RGB, GL_FLOAT, 
 			glm::value_ptr(residualAvgIrradiance));
-
+	
+	return residualAvgIrradiance;
 }
+
+
+
 
 void Quad::swapTextures() {
 
@@ -146,9 +149,7 @@ void Quad::swapTextures() {
 
 	temp = currentResidualTex;
 	currentResidualTex = nextResidualTex;
-	nextResidualTex = currentResidualTex;
-
-	updateResidualAvgIrradiance();
+	nextResidualTex = temp;
 }
 
 
@@ -164,26 +165,6 @@ void Quad::selectAsShooter(int shooterLevel) {
 	// read appropriate mipmap of the residual texture
 
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-
-	/*
-	float *data = new float[3*shooterRows*shooterCols];
-	glGetTexImage(GL_TEXTURE_2D, shooterLevel, GL_RGB, GL_FLOAT, data);
-
-	// copy data
-	residualShooterIrradiances.clear();
-
-	int k = 0;
-	glm::vec3 irradiance;
-	for (int row=0; row<shooterRows; row++) {
-		for (int col=0; col<shooterCols; col++) {
-			irradiance.x = data[k++];
-			irradiance.y = data[k++];
-			irradiance.z = data[k++];
-			residualShooterIrradiances.push_back(irradiance);
-		}
-	}
-	delete[] data;
-	*/
 
 	residualShooterIrradiances.resize(shooterRows*shooterCols);
 	glGetTexImage(GL_TEXTURE_2D, shooterLevel, GL_RGB, GL_FLOAT,
@@ -211,9 +192,9 @@ void Quad::getNextShooterCellUniforms(glm::mat4 *view_ptr,
 	glm::vec3 lookNeg = -n;
 	
 	// compute view matrix
-	float tR = -glm::dot(position, right);
-	float tU = -glm::dot(position, up);
-	float tL = -glm::dot(position, lookNeg);
+	float tR = -glm::dot(shooterPosition, right);
+	float tU = -glm::dot(shooterPosition, up);
+	float tL = -glm::dot(shooterPosition, lookNeg);
 	// constructor order is tranposed 
 	*view_ptr = glm::mat4(	right.x,	up.x,	lookNeg.x,	0.0f,
 							right.y,	up.y,	lookNeg.y,	0.0f,
@@ -241,20 +222,15 @@ void Quad::clearResidualTex() {
 
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
 		0, GL_RGB, GL_FLOAT, zeros);
 
-	// rebuild mipmaps necessary??????
-
-	updateResidualAvgIrradiance();
+	// rebuild mipmaps of residual texture
+	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 
 
-glm::vec3 Quad::getResidualAvgIrradiance() const {
-	
-	return residualAvgIrradiance;
-}
 
 
 
@@ -286,6 +262,59 @@ GLuint Quad::getResidualTex() const {
 	return currentResidualTex;
 }
 
+GLuint Quad::getNextRadiosityTex() const {
+	return nextRadiosityTex;
+}
+
+GLuint Quad::getNextResidualTex() const {
+	return nextResidualTex;
+}
+
 glm::vec3 Quad::getReflectance() const {
 	return reflectance;
+}
+
+int Quad::getTexWidth() {
+	return RAD_TEX_WIDTH;
+}
+
+int Quad::getTexHeight() {
+	return RAD_TEX_HEIGHT;
+}
+
+
+
+void Quad::printRadTex() {
+
+	// TEST!!! read back new residual texture
+	printf("\n\n\n\n");
+	glBindTexture(GL_TEXTURE_2D, currentRadiosityTex);
+	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
+	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
+		for (int j=0; j<RAD_TEX_WIDTH; j++) {
+			int base = 3*(i*RAD_TEX_WIDTH+j);
+			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
+		}
+		printf("\n");
+	}
+	delete[] irr;
+}
+
+
+void Quad::printResTex() {
+
+	// TEST!!! read back new residual texture
+	printf("\n\n\n\n");
+	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
+	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
+	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
+		for (int j=0; j<RAD_TEX_WIDTH; j++) {
+			int base = 3*(i*RAD_TEX_WIDTH+j);
+			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
+		}
+		printf("\n");
+	}
+	delete[] irr;
 }
