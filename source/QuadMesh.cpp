@@ -114,8 +114,8 @@ int QuadMesh::getNumVertices() const {
 	return 4*quads.size();
 }
 
-Quad &QuadMesh::getQuad(int i){
-	return quads[i];
+Quad *QuadMesh::getQuad(int i){
+	return &quads[i];
 }
 
 const float *QuadMesh::getPositionsArray() const {

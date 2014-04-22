@@ -4,9 +4,9 @@
 #include "Utils.h"
 #include <vector>
 
-#define RAD_TEX_WIDTH 512
-#define RAD_TEX_HEIGHT 512
-#define RAD_TEX_TOPMIPLEVEL 9	// log2(RAD_TEX_DIMENSION)
+#define RAD_TEX_WIDTH 16
+#define RAD_TEX_HEIGHT 16
+#define RAD_TEX_TOPMIPLEVEL 4	// log2(RAD_TEX_DIMENSION)
 
 class Quad {
 

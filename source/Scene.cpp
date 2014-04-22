@@ -103,7 +103,7 @@ void Scene::render() {
 		float maxResIrradMag = -1.0f;
 		for (int i=0; i<quadMesh.getNumQuads(); i++) {
 		
-			Quad *quad = &quadMesh.getQuad(i);
+			Quad *quad = quadMesh.getQuad(i);
 
 			glm::vec3 resIrrad = quad->getResidualAvgIrradiance();
 			float resIrradMag = glm::length(resIrrad);
@@ -124,7 +124,7 @@ void Scene::render() {
 
 		// shoot residual irradiance from each shooter cell of this shooter
 
-		shooter->selectAsShooter(0);
+		shooter->selectAsShooter(3);
 
 		glm::mat4 shooterCellView;
 		glm::vec3 shooterCellPower;
@@ -143,7 +143,7 @@ void Scene::render() {
 			// update each receiving quad's residual
 			for (int i=0; i<quadMesh.getNumQuads(); i++) {
 			
-				Quad *receiver = &quadMesh.getQuad(i);
+				Quad *receiver = quadMesh.getQuad(i);
 
 				glm::vec4 normalShooterView4 = shooterCellView *
 						glm::vec4(receiver->getN(), 0.0f);
@@ -161,8 +161,8 @@ void Scene::render() {
 				receiver->swapTextures();
 
 
-				//quadMesh.getQuad(0).printRadTex();
-				//quadMesh.getQuad(0).printResTex();
+				//quadMesh.getQuad(0)->printRadTex();
+				//quadMesh.getQuad(0)->printResTex();
 			}
 		}
 		shooter->clearResidualTex();
@@ -180,7 +180,7 @@ void Scene::render() {
 	ssi.setModelViewProj(camera.getViewProj());
 	for (int i=0; i<quadMesh.getNumQuads(); i++) {
 
-		ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
+		ssi.setTexture(quadMesh.getQuad(i)->getRadiosityTex());
 		ssi.draw(quadMesh.getBaseVertex(i));
 	
 	}
@@ -189,7 +189,7 @@ void Scene::render() {
 	if (testFlag) {
 		ssi.setModelViewProj(camera.getViewProj());
 		for (int i=0; i<quadMesh.getNumQuads(); i++) {
-			ssi.setTexture(quadMesh.getQuad(i).getRadiosityTex());
+			ssi.setTexture(quadMesh.getQuad(i)->getRadiosityTex());
 			ssi.draw(quadMesh.getBaseVertex(i));
 		}
 	} else {
