@@ -21,6 +21,9 @@ private:
 	GLuint texcoordVbo;
 	GLuint indexVbo;
 
+	// texture sampler object
+	GLuint nearestClampToEdgeSampler;
+
 public:
 	SceneShaderInterface();
 	

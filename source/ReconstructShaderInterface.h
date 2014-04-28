@@ -30,6 +30,9 @@ private:
 	// framebuffer for rendering to
 	GLuint fbo;
 
+	// texture sampler objects
+	GLuint nearestSampler;
+	GLuint nearestClampToBorderSampler;
 
 public:
 

@@ -30,6 +30,7 @@ void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
 	n = glm::normalize(glm::cross(u, v));
 	this->reflectance = reflectance;
 
+	this->subdivideLevel = 0;
 
 	// initial texture data
 	float *initialPixels = new float[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
@@ -69,13 +70,15 @@ void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
 
 
 void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
-		const glm::vec3 &v, const glm::vec3 &reflectance) {
+		const glm::vec3 &v, const glm::vec3 &reflectance, int subdivideLevel) {
 
 	this->position = position;
 	this->u = u;
 	this->v = v;
 	n = glm::normalize(glm::cross(u, v));
 	this->reflectance = reflectance;
+
+	this->subdivideLevel = subdivideLevel;
 
 	initTextures(0);
 }
@@ -90,11 +93,11 @@ void Quad::initTextures(float *initialPixels) {
 
 	glGenTextures(1, &currentRadiosityTex);
 	glBindTexture(GL_TEXTURE_2D, currentRadiosityTex);
-	// set texture params
+	/*// set texture params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 	// create texture with mipmaps
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
 		0, GL_RGB, GL_FLOAT, initialPixels);
@@ -103,11 +106,11 @@ void Quad::initTextures(float *initialPixels) {
 
 	glGenTextures(1, &nextRadiosityTex);
 	glBindTexture(GL_TEXTURE_2D, nextRadiosityTex);
-	// set texture params
+	/*// set texture params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 	// create texture with mipmaps
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
@@ -116,11 +119,11 @@ void Quad::initTextures(float *initialPixels) {
 
 	glGenTextures(1, &currentResidualTex);
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-	// set texture params
+	/*// set texture params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 	// create texture with mipmaps
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
@@ -129,11 +132,11 @@ void Quad::initTextures(float *initialPixels) {
 
 	glGenTextures(1, &nextResidualTex);
 	glBindTexture(GL_TEXTURE_2D, nextResidualTex);
-	// set texture params
+	/*// set texture params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 	// create texture with mipmaps
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
@@ -265,9 +268,16 @@ void Quad::setV(const glm::vec3 &v) {
 	this->v = v;
 }
 
+void Quad::setSubdivideLevel(int subdivideLevel) {
+	this->subdivideLevel = subdivideLevel;
+}
 
 unsigned int Quad::getId() const {
 	return id;
+}
+
+int Quad::getSubdivideLevel() const {
+	return subdivideLevel;
 }
 
 glm::vec3 Quad::getPosition() const {

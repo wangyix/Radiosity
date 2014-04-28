@@ -5,7 +5,8 @@ SceneShaderInterface::SceneShaderInterface()
 	: shaderProgram(0), vertShader(0), fragShader(0),
 	numVertices(0), numIndices(0),
 	vao(0), positionVbo(0), texcoordVbo(0), indexVbo(0),
-	modelViewProj(-1), tex(-1) {
+	modelViewProj(-1), tex(-1),
+	nearestClampToEdgeSampler(0) {
 }
 
 
@@ -61,6 +62,16 @@ void SceneShaderInterface::init(int numVertices, const float *positions, const f
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
 
 	Utils::exitOnGLError("ERROR: could not set up ssi vbos");
+
+	// set up texture sampler object
+	
+	glGenSamplers(1, &nearestClampToEdgeSampler);
+	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	Utils::exitOnGLError("ERROR: coud not set up ssi sampler object");
 }
 
 
@@ -81,6 +92,7 @@ void SceneShaderInterface::setTexture(GLuint texture) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindSampler(0, nearestClampToEdgeSampler);
 }
 
 
@@ -133,4 +145,11 @@ void SceneShaderInterface::close() {
 	glDeleteProgram(shaderProgram);
 
 	Utils::exitOnGLError("ERROR: could not destroy ssi shaders");
+
+
+	// destroy sampler
+
+	glDeleteSamplers(1, &nearestClampToEdgeSampler);
+
+	Utils::exitOnGLError("ERROR: could not destroy ssi sampler object");
 }

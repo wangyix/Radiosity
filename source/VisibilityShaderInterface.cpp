@@ -68,13 +68,13 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	glBindTexture(GL_TEXTURE_2D, visTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, VIS_BUFFER_WIDTH,
 			VIS_BUFFER_HEIGHT, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
-	// set filtering to nearest: we don't want interpolation of ID values
+	/*// set filtering to nearest: we don't want interpolation of ID values
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	unsigned int borderColor[] = {0, 0, 0, 0};
-	glTexParameterIuiv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameterIuiv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
 
 
 	// attach texture as color attachment 0

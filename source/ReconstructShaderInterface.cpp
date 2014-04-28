@@ -6,7 +6,7 @@ ReconstructShaderInterface::ReconstructShaderInterface()
 	normal(-1), visTex(-1), radTex(-1), resTex(-1),
 	numVertices(0), numIndices(0),
 	vao(0), positionVbo(0), texcoordVbo(0), indexVbo(0),
-	fbo(0) {
+	fbo(0), nearestSampler(0), nearestClampToBorderSampler(0) {
 }
 
 
@@ -98,6 +98,23 @@ void ReconstructShaderInterface::init(int numVertices, const float *positions, c
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	Utils::exitOnGLError("ERROR: coud not set up rsi fbo");
+
+
+	// set up texture sampler object
+	
+	glGenSamplers(1, &nearestSampler);
+	glSamplerParameteri(nearestSampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glSamplerParameteri(nearestSampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glGenSamplers(1, &nearestClampToBorderSampler);
+	glSamplerParameteri(nearestClampToBorderSampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glSamplerParameteri(nearestClampToBorderSampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glSamplerParameteri(nearestClampToBorderSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glSamplerParameteri(nearestClampToBorderSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	unsigned int borderColor[] = {0, 0, 0, 0};
+	glSamplerParameterIuiv(nearestClampToBorderSampler, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	Utils::exitOnGLError("ERROR: coud not set up rsi sampler objects");
 }
 
 
@@ -120,6 +137,7 @@ void ReconstructShaderInterface::setShooterUniforms(const glm::mat4 &modelView,
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, visibilityTexture);
+	glBindSampler(0, nearestClampToBorderSampler);
 }
 
 
@@ -135,9 +153,11 @@ void ReconstructShaderInterface::setReceiverUniforms(unsigned int id,
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, radTex);
+	glBindSampler(1, nearestSampler);
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, resTex);
+	glBindSampler(2, nearestSampler);
 }
 
 
@@ -242,4 +262,12 @@ void ReconstructShaderInterface::close() {
 	glDeleteProgram(shaderProgram);
 
 	Utils::exitOnGLError("ERROR: could not destroy rsi shaders");
+
+
+	// destroy sampler
+
+	glDeleteSamplers(1, &nearestSampler);
+	glDeleteSamplers(1, &nearestClampToBorderSampler);
+
+	Utils::exitOnGLError("ERROR: could not destroy rsi sampler object");
 }

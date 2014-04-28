@@ -22,6 +22,8 @@ private:
 
 	unsigned int id;
 
+	int subdivideLevel;
+
 	glm::vec3 position;	// bottom-left corner
 	glm::vec3 u;
 	glm::vec3 v;
@@ -49,7 +51,8 @@ public:
 	Quad();
 
 	void init(const glm::vec3 &position, const glm::vec3 &u,
-		const glm::vec3 &v, const glm::vec3 &reflectance);
+		const glm::vec3 &v, const glm::vec3 &reflectance,
+		int subdivideLevel);
 
 	void init(const glm::vec3 &position, const glm::vec3 &u,
 		const glm::vec3 &v, const glm::vec3 &reflectance,
@@ -73,6 +76,7 @@ public:
 
 	void setU(const glm::vec3 &u);
 	void setV(const glm::vec3 &v);
+	void setSubdivideLevel(int subdivideLevel);
 
 	unsigned int getId() const;
 	glm::vec3 getPosition() const;
@@ -84,7 +88,9 @@ public:
 	GLuint getNextRadiosityTex() const;
 	GLuint getNextResidualTex() const;
 	glm::vec3 getReflectance() const;
-	
+	int getSubdivideLevel() const;
+
+
 	static int getTexWidth();
 	static int getTexHeight();
 
