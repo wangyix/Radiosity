@@ -26,7 +26,6 @@ private:
 	glm::vec3 u;
 	glm::vec3 v;
 	glm::vec3 n;
-
 	glm::vec3 reflectance;
 
 	// pingpong buffers
@@ -47,13 +46,16 @@ private:
 
 public:
 
-	Quad(const glm::vec3 &position	= glm::vec3(0.0f,0.0f,0.0f),
-		const glm::vec3 &u			= glm::vec3(1.0f,0.0f,0.0f),
-		const glm::vec3 &v			= glm::vec3(0.0f,1.0f,0.0f), 
-		const glm::vec3 &reflectance	= glm::vec3(0.5f,0.5f,0.5f)); 
-	
-	void initTextures(const glm::vec3 &emittance);
-	void closeTextures();
+	Quad();
+
+	void init(const glm::vec3 &position, const glm::vec3 &u,
+		const glm::vec3 &v, const glm::vec3 &reflectance);
+
+	void init(const glm::vec3 &position, const glm::vec3 &u,
+		const glm::vec3 &v, const glm::vec3 &reflectance,
+		const glm::vec3 &emittance);
+
+	void close();
 
 
 	glm::vec3 getResidualAvgIrradiance() const;
@@ -68,6 +70,9 @@ public:
 	
 	void swapTextures();	// call after every reconstruction shader pass
 
+
+	void setU(const glm::vec3 &u);
+	void setV(const glm::vec3 &v);
 
 	unsigned int getId() const;
 	glm::vec3 getPosition() const;
@@ -87,5 +92,8 @@ public:
 	// for testing
 	void printRadTex();
 	void printResTex();
+
+private:
+	void initTextures(float *initialPixels);
 
 };

@@ -79,7 +79,7 @@ void SceneShaderInterface::setTexture(GLuint texture) {
 
 	glUseProgram(shaderProgram);
 
-	glActiveTexture(GL_TEXTURE0 + 0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 }
 

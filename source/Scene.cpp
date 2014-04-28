@@ -7,7 +7,7 @@ Scene::Scene()
 
 int Scene::init() {
 
-	quadMesh.load("./scenefiles/cornell_box.txt");
+	quadMesh.load(SCENE_FILE);
 	
 	ssi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
@@ -124,7 +124,7 @@ void Scene::render() {
 
 		// shoot residual irradiance from each shooter cell of this shooter
 
-		shooter->selectAsShooter(3);
+		shooter->selectAsShooter(SHOOTER_LEVEL);
 
 		glm::mat4 shooterCellView;
 		glm::vec3 shooterCellPower;

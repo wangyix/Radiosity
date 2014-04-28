@@ -26,6 +26,10 @@ public:
 	void load(char *filepath);
 	void unload();
 
+
+	void subdivideQuad(int i, Quad *bl, Quad *br, Quad *tl, Quad *tr);
+
+
 	int getNumQuads() const;
 	int getNumVertices() const;
 
@@ -42,4 +46,8 @@ private:
 	static bool getNextDataLine(std::ifstream &ifs, std::string &line);
 
 	void updateVerticesArrays();
+
+	void updatePositionsOfQuad(int i);
+	void updateTexcoordsOfQuad(int i);
+	void updateIdsOfQuad(int i);
 };

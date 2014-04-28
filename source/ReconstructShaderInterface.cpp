@@ -118,7 +118,7 @@ void ReconstructShaderInterface::setShooterUniforms(const glm::mat4 &modelView,
 	glUniformMatrix4fv(this->modelView, 1, GL_FALSE, glm::value_ptr(modelView));
 	glUniform3fv(this->shooterPower, 1, glm::value_ptr(shooterPower));
 
-	glActiveTexture(GL_TEXTURE0 + 0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, visibilityTexture);
 }
 
@@ -133,10 +133,10 @@ void ReconstructShaderInterface::setReceiverUniforms(unsigned int id,
 	glUniform3fv(this->reflectance, 1, glm::value_ptr(reflectance));
 	glUniform3fv(this->normal, 1, glm::value_ptr(normalShooterView));
 
-	glActiveTexture(GL_TEXTURE0 + 1);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, radTex);
 
-	glActiveTexture(GL_TEXTURE0 + 2);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, resTex);
 }
 

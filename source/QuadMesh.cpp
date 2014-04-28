@@ -82,8 +82,8 @@ void QuadMesh::load(char* filepath) {
 			for (int i=0; i<cols; i++) {
 				base = colBase;
 				for (int j=0; j<rows; j++) {
-					quads.push_back(Quad(base, u, v, reflectance));
-					quads.back().initTextures(emittances[i*rows+j]);
+					quads.resize(quads.size()+1);
+					quads.back().init(base, u, v, reflectance, emittances[i*rows+j]);
 					base += v;
 				}
 				colBase += u;
@@ -100,9 +100,54 @@ void QuadMesh::load(char* filepath) {
 void QuadMesh::unload() {
 
 	for (unsigned int i=0; i<quads.size(); i++) {
-		quads[i].closeTextures();
+		quads[i].close();
 	}
 	quads.clear();
+}
+
+
+void QuadMesh::subdivideQuad(int i, Quad *bl, Quad *br, Quad *tl, Quad *tr) {
+
+	Quad *oldQuad = &quads[i];
+	glm::vec3 halfU = oldQuad->getU();
+	glm::vec3 halfV = oldQuad->getV();
+	glm::vec3 position = oldQuad->getPosition();
+	glm::vec3 reflectance = oldQuad->getReflectance();
+
+	// update geometry of original quad to become the bottom-left quadrant
+	oldQuad->setU(halfU);
+	oldQuad->setV(halfV);
+	// update positions array
+	updatePositionsOfQuad(i);
+
+	
+	// make space for 3 new quads
+	int newQuadIndex = quads.size();
+	quads.resize(quads.size()+3);
+	positions.resize(12*quads.size());
+	texcoords.resize(8*quads.size());
+	ids.resize(4*quads.size());
+
+	// create new quad for bottom-right quadrant
+	quads[newQuadIndex].init(position+halfU, halfU, halfV, reflectance);
+	updatePositionsOfQuad(newQuadIndex);
+	updateTexcoordsOfQuad(newQuadIndex);
+	updateIdsOfQuad(newQuadIndex);
+	newQuadIndex++;
+
+	// create new quad for top-left quadrant
+	quads[newQuadIndex].init(position+halfV, halfU, halfV, reflectance);
+	updatePositionsOfQuad(newQuadIndex);
+	updateTexcoordsOfQuad(newQuadIndex);
+	updateIdsOfQuad(newQuadIndex);
+	newQuadIndex++;
+
+	// create new quad for top-right quadrant
+	quads[newQuadIndex].init(position+halfU+halfV, halfU, halfV, reflectance);
+	updatePositionsOfQuad(newQuadIndex);
+	updateTexcoordsOfQuad(newQuadIndex);
+	updateIdsOfQuad(newQuadIndex);
+	//newQuadIndex++;
 }
 
 
@@ -153,32 +198,55 @@ void QuadMesh::updateVerticesArrays() {
 	texcoords.resize(8*quads.size());
 	ids.resize(4*quads.size());
 
-	unsigned int iPos = 0;
-	unsigned int iTex = 0;
-	unsigned int iId = 0;
-
 	for (unsigned int i=0; i<quads.size(); i++) {
-		
-		glm::vec3 corners[4];
-		corners[0] = quads[i].getPosition();
-		corners[1] = corners[0] + quads[i].getU();
-		corners[2] = corners[1] + quads[i].getV();
-		corners[3] = corners[0] + quads[i].getV();
-
-		for (unsigned int j=0; j<4; j++) {
-			positions[iPos++] = corners[j].x;
-			positions[iPos++] = corners[j].y;
-			positions[iPos++] = corners[j].z;
-			ids[iId++] = quads[i].getId();
-		}
-
-		texcoords[iTex++] = 0.0f;
-		texcoords[iTex++] = 0.0f;
-		texcoords[iTex++] = 1.0f;
-		texcoords[iTex++] = 0.0f;
-		texcoords[iTex++] = 1.0f;
-		texcoords[iTex++] = 1.0f;
-		texcoords[iTex++] = 0.0f;
-		texcoords[iTex++] = 1.0f;
+		updatePositionsOfQuad(i);
+		updateTexcoordsOfQuad(i);
+		updateIdsOfQuad(i);
 	}
+}
+
+
+void QuadMesh::updatePositionsOfQuad(int i) {
+
+	Quad *q = &quads[i];
+	unsigned int base = 12*i;
+
+	glm::vec3 vertexPos = q->getPosition();
+	positions[base++] = vertexPos.x;
+	positions[base++] = vertexPos.y;
+	positions[base++] = vertexPos.z;
+	vertexPos += q->getU();
+	positions[base++] = vertexPos.x;
+	positions[base++] = vertexPos.y;
+	positions[base++] = vertexPos.z;
+	vertexPos += q->getV();
+	positions[base++] = vertexPos.x;
+	positions[base++] = vertexPos.y;
+	positions[base++] = vertexPos.z;
+	vertexPos = q->getPosition() + q->getV();
+	positions[base++] = vertexPos.x;
+	positions[base++] = vertexPos.y;
+	positions[base++] = vertexPos.z;
+}
+
+
+void QuadMesh::updateTexcoordsOfQuad(int i) {
+	unsigned int base = 8*i;
+	texcoords[base++] = 0.0f;
+	texcoords[base++] = 0.0f;
+	texcoords[base++] = 1.0f;
+	texcoords[base++] = 0.0f;
+	texcoords[base++] = 1.0f;
+	texcoords[base++] = 1.0f;
+	texcoords[base++] = 0.0f;
+	texcoords[base++] = 1.0f;
+}
+
+void QuadMesh::updateIdsOfQuad(int i) {
+	unsigned int id = quads[i].getId();
+	unsigned int base = 4*i;
+	ids[base++] = id;
+	ids[base++] = id;
+	ids[base++] = id;
+	ids[base++] = id;
 }

@@ -8,8 +8,7 @@ const int Quad::numIndices = 6;
 
 
 
-Quad::Quad(const glm::vec3 &position, const glm::vec3 &u, const glm::vec3 &v, 
-		const glm::vec3 &reflectance) 
+Quad::Quad() 
 		:  currentRadiosityTex(0), nextRadiosityTex(0),
 		currentResidualTex(0), nextResidualTex(0),
 		shooterRows(0), shooterCols(0),
@@ -17,16 +16,20 @@ Quad::Quad(const glm::vec3 &position, const glm::vec3 &u, const glm::vec3 &v,
 		currentShooterRow(0), currentShooterCol(0) {
 
 	id = nextId++;
+}
+
+
+
+void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
+		const glm::vec3 &v, const glm::vec3 &reflectance,
+		const glm::vec3 &emittance) {
+
 	this->position = position;
 	this->u = u;
 	this->v = v;
 	n = glm::normalize(glm::cross(u, v));
 	this->reflectance = reflectance;
-}
 
-
-
-void Quad::initTextures(const glm::vec3 &emittance) {
 
 	// initial texture data
 	float *initialPixels = new float[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
@@ -39,7 +42,6 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 			initialPixels[k++] = emittance.z;
 		}
 	}
-	
 	/*
 	// FOR TESTING!!!!!!!!!!!!
 	static float t = 0.0f;
@@ -58,6 +60,31 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 		}
 	}*/
 
+
+	initTextures(initialPixels);
+
+	delete[] initialPixels;
+}
+
+
+
+void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
+		const glm::vec3 &v, const glm::vec3 &reflectance) {
+
+	this->position = position;
+	this->u = u;
+	this->v = v;
+	n = glm::normalize(glm::cross(u, v));
+	this->reflectance = reflectance;
+
+	initTextures(0);
+}
+
+
+
+
+
+void Quad::initTextures(float *initialPixels) {
 
 	// initialize radiosity and residual texture pairs
 
@@ -111,13 +138,11 @@ void Quad::initTextures(const glm::vec3 &emittance) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
 		0, GL_RGB, GL_FLOAT, initialPixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
-
-
-	delete[] initialPixels;
 }
 
 
-void Quad::closeTextures() {
+
+void Quad::close() {
 	glDeleteTextures(1, &currentRadiosityTex);
 	glDeleteTextures(1, &nextRadiosityTex);
 	glDeleteTextures(1, &currentResidualTex);
@@ -232,7 +257,13 @@ void Quad::clearResidualTex() {
 
 
 
+void Quad::setU(const glm::vec3 &u) {
+	this->u = u;
+}
 
+void Quad::setV(const glm::vec3 &v) {
+	this->v = v;
+}
 
 
 unsigned int Quad::getId() const {
