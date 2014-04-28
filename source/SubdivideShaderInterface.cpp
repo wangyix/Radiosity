@@ -4,7 +4,7 @@ SubdivideShaderInterface::SubdivideShaderInterface()
 	: shaderProgram(0), vertShader(0), fragShader(0),
 	radTex(-1), resTex(-1),
 	vao(0), texcoordVbo(0), indexVbo(0),
-	fbo(0) {
+	fbo(0), bilinearSampler(0) {
 }
 
 
@@ -86,6 +86,15 @@ void SubdivideShaderInterface::init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	Utils::exitOnGLError("ERROR: coud not set up susi fbo");
+
+
+	// set up texture sampler object
+	
+	glGenSamplers(1, &bilinearSampler);
+	glSamplerParameteri(bilinearSampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glSamplerParameteri(bilinearSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	Utils::exitOnGLError("ERROR: coud not set up susi sampler object");
 }
 
 
@@ -96,9 +105,11 @@ void SubdivideShaderInterface::setUniforms(GLuint radTex, GLuint resTex) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, radTex);
+	glBindSampler(0, bilinearSampler);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, resTex);
+	glBindSampler(1, bilinearSampler);
 }
 
 
@@ -190,13 +201,13 @@ void SubdivideShaderInterface::close() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &indexVbo);
 
-	Utils::exitOnGLError("ERROR: could not destroy rsi vao, vbos");
+	Utils::exitOnGLError("ERROR: could not destroy susi vao, vbos");
 
 	// destroy fbo
 
 	glDeleteFramebuffers(1, &fbo);
 
-	Utils::exitOnGLError("ERROR: could not destroy rsi fbo");
+	Utils::exitOnGLError("ERROR: could not destroy susi fbo");
 
 
 	// destroy shaders
@@ -211,5 +222,12 @@ void SubdivideShaderInterface::close() {
 
 	glDeleteProgram(shaderProgram);
 
-	Utils::exitOnGLError("ERROR: could not destroy rsi shaders");
+	Utils::exitOnGLError("ERROR: could not destroy susi shaders");
+
+
+	// destroy sampler
+
+	glDeleteSamplers(1, &bilinearSampler);
+
+	Utils::exitOnGLError("ERROR: could not destroy susi sampler object");
 }

@@ -20,6 +20,8 @@ private:
 	// framebuffer for rendering to
 	GLuint fbo;
 
+	// texture sampler object
+	GLuint bilinearSampler;
 
 public:
 
