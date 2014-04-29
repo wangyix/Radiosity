@@ -142,7 +142,7 @@ void Quad::close() {
 }
 
 
-glm::vec3 Quad::getResidualAvgIrradiance() const {
+glm::vec3 Quad::getResidualPower() const {
 	
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
 
@@ -150,7 +150,7 @@ glm::vec3 Quad::getResidualAvgIrradiance() const {
 	glGetTexImage(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL, GL_RGB, GL_FLOAT, 
 			glm::value_ptr(residualAvgIrradiance));
 	
-	return residualAvgIrradiance;
+	return residualAvgIrradiance * (glm::length(u)*glm::length(v));
 }
 
 
@@ -306,6 +306,14 @@ GLuint Quad::getNextResidualTex() const {
 
 glm::vec3 Quad::getReflectance() const {
 	return reflectance;
+}
+
+int Quad::getCurrentShooterRow() const {
+	return currentShooterRow;
+}
+
+int Quad::getCurrentShooterCol() const {
+	return currentShooterCol;
 }
 
 int Quad::getTexWidth() {

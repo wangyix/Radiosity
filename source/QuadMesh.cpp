@@ -108,9 +108,17 @@ void QuadMesh::unload() {
 
 void QuadMesh::subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr, Quad **tr_ptr) {
 
+	// make space for 3 new quads (must do this before getting quad pointers)
+	int newQuadIndex = quads.size();
+	quads.resize(quads.size()+3);
+	positions.resize(12*quads.size());
+	texcoords.resize(8*quads.size());
+	ids.resize(4*quads.size());
+
+	// get old quad properties
 	Quad *oldQuad = &quads[i];
-	glm::vec3 halfU = oldQuad->getU();
-	glm::vec3 halfV = oldQuad->getV();
+	glm::vec3 halfU = oldQuad->getU() * 0.5f;
+	glm::vec3 halfV = oldQuad->getV() * 0.5f;
 	glm::vec3 position = oldQuad->getPosition();
 	glm::vec3 reflectance = oldQuad->getReflectance();
 
@@ -125,13 +133,6 @@ void QuadMesh::subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr,
 	updatePositionsOfQuad(i);
 
 	
-	// make space for 3 new quads
-	int newQuadIndex = quads.size();
-	quads.resize(quads.size()+3);
-	positions.resize(12*quads.size());
-	texcoords.resize(8*quads.size());
-	ids.resize(4*quads.size());
-
 	// create new quad for bottom-right quadrant
 	*br_ptr = &quads[newQuadIndex];
 	quads[newQuadIndex].init(position+halfU, halfU, halfV,

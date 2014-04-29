@@ -1,7 +1,7 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(), vsi(), rsi(), susi(), quadMesh(), shooter(0),
+	: ssi(), vsi(), rsi(), susi(), quadMesh(),
 	testFlag(false), testKeyDown(false) {
 }
 
@@ -101,42 +101,48 @@ void Scene::render() {
 
 	if (!converged) {
 
+		int shooterIndex;
+
 		// set shooter as quad with largest residual power
-		float maxResIrradMag = -1.0f;
+		float maxResPowerMag = -1.0f;
 		for (int i=0; i<quadMesh.getNumQuads(); i++) {
 		
-			Quad *quad = quadMesh.getQuad(i);
-
-			glm::vec3 resIrrad = quad->getResidualAvgIrradiance();
-			float resIrradMag = glm::length(resIrrad);
+			glm::vec3 resPower = quadMesh.getQuad(i)->getResidualPower();
+			float resPowerMag = glm::length(resPower);
 		
-			if (resIrradMag > maxResIrradMag) {
-				maxResIrradMag = resIrradMag;
-				shooter = quad;
+			if (resPowerMag > maxResPowerMag) {
+				maxResPowerMag = resPowerMag;
+				shooterIndex = i;
 			}
 		}
 	
 
-
-		if (maxResIrradMag < 0.4f)	{// SET SOME THRESHOLD to stop shooting if residual irradiance low enough
+		// stop shooting if max residual power is low enough
+		if (maxResPowerMag < 0.5f)	{
 			converged = true;
 		}
 
 
+		Quad* shooter = quadMesh.getQuad(shooterIndex);
+
+		printf("\nshooter quad is id=%d (level=%d), powerMag=%f\n", shooter->getId(), shooter->getSubdivideLevel(), maxResPowerMag);
+
 
 		bool quadMeshChanged = false;
 
-
-		// shoot residual irradiance from each shooter cell of this shooter
+		// shoot residual irradiance from each shooter cell of this shooter	
 
 		shooter->selectAsShooter(SHOOTER_LEVEL);
 		glm::mat4 shooterCellView;
 		glm::vec3 shooterCellPower;
 
 		while (shooter->hasNextShooterCell()) {
-		
+
+			printf("	shooter row, col = (%d, %d)\n", shooter->getCurrentShooterRow(), shooter->getCurrentShooterCol());
+			
 			shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
 		
+
 			// update vbos for vsi if the mesh changed
 			if (quadMeshChanged) {
 				vsi.setVertices(quadMesh.getNumVertices(),
@@ -158,13 +164,15 @@ void Scene::render() {
 			
 			int i = 0;
 			while (i < quadMesh.getNumQuads()) {
-			
+
 				Quad *receiver = quadMesh.getQuad(i);
 				
 				if (receiver == shooter) {
 					i++;
 					continue;
 				}
+
+				printf("		Receiver is patch id=%d (level %d)\n", receiver->getId(), receiver->getSubdivideLevel());
 
 				glm::vec4 normalShooterView4 = shooterCellView *
 						glm::vec4(receiver->getN(), 0.0f);
@@ -188,7 +196,7 @@ void Scene::render() {
 				// run gradient shader on receiver's next rad tex
 
 				//srand(time(NULL));
-				subdivide = false;//(rand()%4==0);
+				subdivide = (rand()%10==0);
 
 				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
 					
@@ -200,6 +208,9 @@ void Scene::render() {
 					// subdivide this receiver quad in the mesh
 					Quad *subQuads[4];
 					quadMesh.subdivideQuad(i, &subQuads[0], &subQuads[1], &subQuads[2], &subQuads[3]);
+
+					for (int j=0; j<4; j++)
+						printf("			created child quad id=%d (level=%d)\n", subQuads[j]->getId(), subQuads[j]->getSubdivideLevel());
 
 					// Copy rad, res values of original quad into the 4 subdivided quads
 					// using shader. Bilinear filtering is used to calculate new in-between values
@@ -215,8 +226,11 @@ void Scene::render() {
 
 					quadMeshChanged = true;
 
+					// recalculate any quad pointers we were using
+					shooter = quadMesh.getQuad(shooterIndex);
+
 					// do not increment i; the current receiver has been replaced with its bottom-left
-					// quadrant and needs to go thru the reconstruction pass again.
+					// quadrant and needs to go thru the reconstruction pass again
 				}
 
 

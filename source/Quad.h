@@ -61,7 +61,7 @@ public:
 	void close();
 
 
-	glm::vec3 getResidualAvgIrradiance() const;
+	glm::vec3 getResidualPower() const;
 
 	void selectAsShooter(int shooterDensity);
 
@@ -88,6 +88,9 @@ public:
 	GLuint getNextRadiosityTex() const;
 	GLuint getNextResidualTex() const;
 	glm::vec3 getReflectance() const;
+	int getCurrentShooterRow() const;
+	int getCurrentShooterCol() const;
+	
 	int getSubdivideLevel() const;
 
 
