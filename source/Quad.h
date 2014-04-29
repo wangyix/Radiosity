@@ -100,6 +100,8 @@ public:
 	void printResTex();
 
 private:
+	
 	void initTextures(float *initialPixels);
 
+	void setupCurrentTexture(float *initialPixels);
 };

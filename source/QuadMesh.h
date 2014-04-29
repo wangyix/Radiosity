@@ -27,7 +27,7 @@ public:
 	void unload();
 
 
-	void subdivideQuad(int i, Quad *bl, Quad *br, Quad *tl, Quad *tr);
+	void subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr, Quad **tr_ptr);
 
 
 	int getNumQuads() const;

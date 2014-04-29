@@ -1,7 +1,7 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(), vsi(), rsi(), quadMesh(), shooter(0),
+	: ssi(), vsi(), rsi(), susi(), quadMesh(), shooter(0),
 	testFlag(false), testKeyDown(false) {
 }
 
@@ -20,6 +20,8 @@ int Scene::init() {
 		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 	rsi.setVisTexelSize(1.0f/(float)VisibilityShaderInterface::getVisTextureWidth(),
 		1.0f/(float)VisibilityShaderInterface::getVisTextureHeight());
+
+	susi.init();
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
@@ -122,16 +124,26 @@ void Scene::render() {
 
 
 
+		bool quadMeshChanged = false;
+
+
 		// shoot residual irradiance from each shooter cell of this shooter
 
 		shooter->selectAsShooter(SHOOTER_LEVEL);
-
 		glm::mat4 shooterCellView;
 		glm::vec3 shooterCellPower;
+
 		while (shooter->hasNextShooterCell()) {
 		
 			shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
 		
+			// update vbos for vsi if the mesh changed
+			if (quadMeshChanged) {
+				vsi.setVertices(quadMesh.getNumVertices(),
+							quadMesh.getPositionsArray(), quadMesh.getIdsArray());
+				quadMeshChanged = false;
+			}
+
 			// render visibility texture from shooter's perspective
 			vsi.setModelView(shooterCellView);
 			vsi.draw();
@@ -140,10 +152,19 @@ void Scene::render() {
 			rsi.setShooterUniforms(shooterCellView, shooterCellPower,
 					vsi.getVisTexture());
 
+
 			// update each receiving quad's residual
-			for (int i=0; i<quadMesh.getNumQuads(); i++) {
+			// more quads may be appended to quadMesh if subdividing occurs
+			
+			int i = 0;
+			while (i < quadMesh.getNumQuads()) {
 			
 				Quad *receiver = quadMesh.getQuad(i);
+				
+				if (receiver == shooter) {
+					i++;
+					continue;
+				}
 
 				glm::vec4 normalShooterView4 = shooterCellView *
 						glm::vec4(receiver->getN(), 0.0f);
@@ -155,10 +176,48 @@ void Scene::render() {
 						normalShooterView,
 						receiver->getRadiosityTex(), receiver->getResidualTex());
 
-				rsi.draw(quadMesh.getBaseVertex(i), receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
+				rsi.draw(quadMesh.getBaseVertex(i), receiver->getNextRadiosityTex(),
+						receiver->getNextResidualTex(),
 						Quad::getTexWidth(), Quad::getTexHeight());
 
-				receiver->swapTextures();
+
+
+				
+				bool subdivide;
+				// TODO: add code to determine if this quad needs to be subdivided
+				// run gradient shader on receiver's next rad tex
+
+				//srand(time(NULL));
+				subdivide = false;//(rand()%4==0);
+
+				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
+					
+					receiver->swapTextures();
+					i++;
+				
+				} else {
+
+					// subdivide this receiver quad in the mesh
+					Quad *subQuads[4];
+					quadMesh.subdivideQuad(i, &subQuads[0], &subQuads[1], &subQuads[2], &subQuads[3]);
+
+					// Copy rad, res values of original quad into the 4 subdivided quads
+					// using shader. Bilinear filtering is used to calculate new in-between values
+					susi.setUniforms(receiver->getRadiosityTex(), receiver->getResidualTex());
+					susi.draw(	subQuads[0]->getNextRadiosityTex(), subQuads[0]->getNextResidualTex(),
+								subQuads[1]->getNextRadiosityTex(), subQuads[1]->getNextResidualTex(),
+								subQuads[2]->getNextRadiosityTex(), subQuads[2]->getNextResidualTex(),
+								subQuads[3]->getNextRadiosityTex(), subQuads[3]->getNextResidualTex(),
+								Quad::getTexWidth(), Quad::getTexHeight()	);
+					for (int j=0; j<4; j++) {	
+						subQuads[j]->swapTextures();
+					}
+
+					quadMeshChanged = true;
+
+					// do not increment i; the current receiver has been replaced with its bottom-left
+					// quadrant and needs to go thru the reconstruction pass again.
+				}
 
 
 				//quadMesh.getQuad(0)->printRadTex();
@@ -176,6 +235,10 @@ void Scene::render() {
 
 
 	// render all quads to screen
+	
+	// TODO: don't update ssi vbos every time before rendering, only if out of sync with mesh
+	ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
+		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 
 	ssi.setModelViewProj(camera.getViewProj());
 	for (int i=0; i<quadMesh.getNumQuads(); i++) {
@@ -205,6 +268,8 @@ void Scene::close() {
 	vsi.close();
 
 	rsi.close();
+
+	susi.close();
 
 	quadMesh.unload();
 }

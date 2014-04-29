@@ -28,13 +28,13 @@ void SubdivideShaderInterface::init() {
 
 	Utils::exitOnGLError("ERROR: could not create susi shader program");
 
-
+	
 	// assign texture units to tex uniforms
 	glUseProgram(shaderProgram);
 	glUniform1i(radTex, 0);
 	glUniform1i(resTex, 1);
 
-
+	
 	// set up vao, vbos
 
 	// vertex data for drawing screen quad
@@ -57,7 +57,7 @@ void SubdivideShaderInterface::init() {
 	Utils::exitOnGLError("ERROR: could not set up susi vbos");
 
 
-
+	
 	// set up fbo
 
 	glGenFramebuffers(1, &fbo);
@@ -87,7 +87,7 @@ void SubdivideShaderInterface::init() {
 
 	Utils::exitOnGLError("ERROR: coud not set up susi fbo");
 
-
+	
 	// set up texture sampler object
 	
 	glGenSamplers(1, &bilinearSampler);

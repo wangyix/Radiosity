@@ -161,6 +161,21 @@ void ReconstructShaderInterface::setReceiverUniforms(unsigned int id,
 }
 
 
+void ReconstructShaderInterface::setSubreceiverUniforms(unsigned int id, GLuint radTex, GLuint resTex) {
+
+	glUseProgram(shaderProgram);
+
+	glUniform1ui(this->id, id);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, radTex);
+	glBindSampler(1, nearestSampler);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, resTex);
+	glBindSampler(2, nearestSampler);
+}
+
 
 void ReconstructShaderInterface::draw(int baseVertex,
 		GLuint nextRadTex, GLuint nextResTex, int texWidth, int texHeight) {
@@ -199,10 +214,10 @@ void ReconstructShaderInterface::draw(int baseVertex,
 	// rebuild mipmaps of textures we rendered to
 
 	glBindTexture(GL_TEXTURE_2D, nextRadTex);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D);					// getting stuck here???
 
 	glBindTexture(GL_TEXTURE_2D, nextResTex);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D);					// getting stuck here....
 
 	/*
 	// TEST!!! read back new residual texture

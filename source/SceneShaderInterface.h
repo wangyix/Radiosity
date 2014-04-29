@@ -29,6 +29,10 @@ public:
 	
 	void init(int numVertices, const float *positions, const float *texcoords,
 		int numIndices, const unsigned short *indices);
+
+	void setVertices(int numVertices, const float *positions, const float *texcoords,
+		int numIndices, const unsigned short *indices);
+
 	void setModelViewProj(const glm::mat4 &modelViewProj);
 	void setTexture(GLuint texture);
 	void draw(int baseVertex);

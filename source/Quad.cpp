@@ -85,62 +85,51 @@ void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
 
 
 
-
-
 void Quad::initTextures(float *initialPixels) {
 
 	// initialize radiosity and residual texture pairs
 
 	glGenTextures(1, &currentRadiosityTex);
 	glBindTexture(GL_TEXTURE_2D, currentRadiosityTex);
-	/*// set texture params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
-	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
-		0, GL_RGB, GL_FLOAT, initialPixels);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	setupCurrentTexture(initialPixels);
 
 
 	glGenTextures(1, &nextRadiosityTex);
 	glBindTexture(GL_TEXTURE_2D, nextRadiosityTex);
-	/*// set texture params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
-	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
-		0, GL_RGB, GL_FLOAT, initialPixels);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	setupCurrentTexture(initialPixels);
 
 
 	glGenTextures(1, &currentResidualTex);
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-	/*// set texture params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
-	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
-		0, GL_RGB, GL_FLOAT, initialPixels);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	setupCurrentTexture(initialPixels);
 
 
 	glGenTextures(1, &nextResidualTex);
 	glBindTexture(GL_TEXTURE_2D, nextResidualTex);
-	/*// set texture params
+	setupCurrentTexture(initialPixels);
+}
+
+
+void Quad::setupCurrentTexture(float *initialPixels) {
+
+	// create texture with mipmaps
+	
+	// immutable storage!!!
+	glTexStorage2D(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL+1, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, RAD_TEX_WIDTH, RAD_TEX_HEIGHT, GL_RGB, GL_FLOAT, initialPixels);
+
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
+		//0, GL_RGB, GL_FLOAT, initialPixels);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	/*
+	// set texture params
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
-	// create texture with mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
-		0, GL_RGB, GL_FLOAT, initialPixels);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	*/
 }
 
 
@@ -251,8 +240,11 @@ void Quad::clearResidualTex() {
 
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
-		0, GL_RGB, GL_FLOAT, zeros);
+	// immutable storage!!
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, RAD_TEX_WIDTH, RAD_TEX_HEIGHT, GL_RGB, GL_FLOAT, zeros);
+
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
+		//0, GL_RGB, GL_FLOAT, zeros);
 
 	// rebuild mipmaps of residual texture
 	glGenerateMipmap(GL_TEXTURE_2D);

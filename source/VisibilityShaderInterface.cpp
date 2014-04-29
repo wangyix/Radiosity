@@ -66,8 +66,14 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	// create texture for rendering to, give it empty image initially
 	glGenTextures(1, &visTexture);
 	glBindTexture(GL_TEXTURE_2D, visTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, VIS_BUFFER_WIDTH,
-			VIS_BUFFER_HEIGHT, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+
+	// mutable storage
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, VIS_BUFFER_WIDTH,
+			//VIS_BUFFER_HEIGHT, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	
+	// immutable storage!!
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32UI, VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
+
 	/*// set filtering to nearest: we don't want interpolation of ID values
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -108,7 +114,19 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 }
 
 
+void VisibilityShaderInterface::setVertices(int numVertices, const float *positions,
+		const unsigned int *ids) {
 
+	this->numVertices = numVertices;
+
+	// update vbos
+	
+	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, idVbo);
+	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(unsigned int), ids, GL_STATIC_DRAW);
+}
 
 
 void VisibilityShaderInterface::setNearFar(float near, float far) {

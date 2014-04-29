@@ -76,6 +76,24 @@ void SceneShaderInterface::init(int numVertices, const float *positions, const f
 
 
 
+void SceneShaderInterface::setVertices(int numVertices, const float *positions,const float *texcoords,
+		int numIndices, const unsigned short *indices) {
+
+	this->numVertices = numVertices;
+	this->numIndices = numIndices;
+
+	// update vbos
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
+	glBufferData(GL_ARRAY_BUFFER, 2*numVertices*sizeof(float), texcoords, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
+}
+
 
 void SceneShaderInterface::setModelViewProj(const glm::mat4 &modelViewProj) {
 

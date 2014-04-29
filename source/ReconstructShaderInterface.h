@@ -52,6 +52,8 @@ public:
 							const glm::vec3 &normalShooterView,
 							GLuint radTex, GLuint resTex);
 
+	void setSubreceiverUniforms(unsigned int id, GLuint radTex, GLuint resTex);
+
 	void draw(int baseVertex, GLuint nextRadTex, GLuint nextResTex,
 			int texWidth, int texHeight);
 
