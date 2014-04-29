@@ -360,3 +360,38 @@ void Quad::printResTex() {
 	}
 	delete[] irr;
 }
+
+void Quad::printNextRadTex() {
+
+	// TEST!!! read back new residual texture
+	printf("\n\n\n\n");
+	glBindTexture(GL_TEXTURE_2D, nextRadiosityTex);
+	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
+	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
+		for (int j=0; j<RAD_TEX_WIDTH; j++) {
+			int base = 3*(i*RAD_TEX_WIDTH+j);
+			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
+		}
+		printf("\n");
+	}
+	delete[] irr;
+}
+
+
+void Quad::printNextResTex() {
+
+	// TEST!!! read back new residual texture
+	printf("\n\n\n\n");
+	glBindTexture(GL_TEXTURE_2D, nextResidualTex);
+	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
+	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
+		for (int j=0; j<RAD_TEX_WIDTH; j++) {
+			int base = 3*(i*RAD_TEX_WIDTH+j);
+			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
+		}
+		printf("\n");
+	}
+	delete[] irr;
+}

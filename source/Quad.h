@@ -101,6 +101,8 @@ public:
 	// for testing
 	void printRadTex();
 	void printResTex();
+	void printNextRadTex();
+	void printNextResTex();
 
 private:
 	

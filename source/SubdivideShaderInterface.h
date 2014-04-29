@@ -21,7 +21,7 @@ private:
 	GLuint fbo;
 
 	// texture sampler object
-	GLuint bilinearSampler;
+	GLuint bilinearClampToEdgeSampler;
 
 public:
 

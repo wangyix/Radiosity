@@ -82,9 +82,7 @@ void ReconstructShaderInterface::init(int numVertices, const float *positions, c
 	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 	glDrawBuffers(2, drawBuffers);
 
-	// unbind framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	/*
 	// check framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		fprintf(stderr, "ERROR: could not create rsi fbo \
@@ -92,7 +90,7 @@ void ReconstructShaderInterface::init(int numVertices, const float *positions, c
 		printf("Press enter to exit...");
 		getchar();
 		exit(EXIT_FAILURE);
-	}
+	}*/
 
 	// unbind framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -161,21 +159,6 @@ void ReconstructShaderInterface::setReceiverUniforms(unsigned int id,
 }
 
 
-void ReconstructShaderInterface::setSubreceiverUniforms(unsigned int id, GLuint radTex, GLuint resTex) {
-
-	glUseProgram(shaderProgram);
-
-	glUniform1ui(this->id, id);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, radTex);
-	glBindSampler(1, nearestSampler);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, resTex);
-	glBindSampler(2, nearestSampler);
-}
-
 
 void ReconstructShaderInterface::draw(int baseVertex,
 		GLuint nextRadTex, GLuint nextResTex, int texWidth, int texHeight) {
@@ -201,6 +184,11 @@ void ReconstructShaderInterface::draw(int baseVertex,
 
 	glDrawElementsBaseVertex(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL, baseVertex);
 	
+
+	// detach fbo color attachments
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, 0, 0);
+
 
 	// unbind framebuffer, restore original viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

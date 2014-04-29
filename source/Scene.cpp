@@ -172,7 +172,7 @@ void Scene::render() {
 					continue;
 				}
 
-				printf("		Receiver is patch id=%d (level %d)\n", receiver->getId(), receiver->getSubdivideLevel());
+				//printf("		Receiver is patch id=%d (level %d)\n", receiver->getId(), receiver->getSubdivideLevel());
 
 				glm::vec4 normalShooterView4 = shooterCellView *
 						glm::vec4(receiver->getN(), 0.0f);
@@ -188,7 +188,9 @@ void Scene::render() {
 						receiver->getNextResidualTex(),
 						Quad::getTexWidth(), Quad::getTexHeight());
 
+				receiver->swapTextures();
 
+	receiver->printRadTex();
 
 				
 				bool subdivide;
@@ -196,11 +198,10 @@ void Scene::render() {
 				// run gradient shader on receiver's next rad tex
 
 				//srand(time(NULL));
-				subdivide = (rand()%10==0);
+				subdivide = (rand()%10>=0);
 
 				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
-					
-					receiver->swapTextures();
+
 					i++;
 				
 				} else {
@@ -212,14 +213,17 @@ void Scene::render() {
 					for (int j=0; j<4; j++)
 						printf("			created child quad id=%d (level=%d)\n", subQuads[j]->getId(), subQuads[j]->getSubdivideLevel());
 
+
 					// Copy rad, res values of original quad into the 4 subdivided quads
 					// using shader. Bilinear filtering is used to calculate new in-between values
 					susi.setUniforms(receiver->getRadiosityTex(), receiver->getResidualTex());
+
 					susi.draw(	subQuads[0]->getNextRadiosityTex(), subQuads[0]->getNextResidualTex(),
 								subQuads[1]->getNextRadiosityTex(), subQuads[1]->getNextResidualTex(),
 								subQuads[2]->getNextRadiosityTex(), subQuads[2]->getNextResidualTex(),
 								subQuads[3]->getNextRadiosityTex(), subQuads[3]->getNextResidualTex(),
 								Quad::getTexWidth(), Quad::getTexHeight()	);
+
 					for (int j=0; j<4; j++) {	
 						subQuads[j]->swapTextures();
 					}
@@ -231,11 +235,9 @@ void Scene::render() {
 
 					// do not increment i; the current receiver has been replaced with its bottom-left
 					// quadrant and needs to go thru the reconstruction pass again
+
+	subQuads[0]->printRadTex();
 				}
-
-
-				//quadMesh.getQuad(0)->printRadTex();
-				//quadMesh.getQuad(0)->printResTex();
 			}
 		}
 		shooter->clearResidualTex();

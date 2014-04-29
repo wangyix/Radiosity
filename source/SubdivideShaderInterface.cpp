@@ -4,7 +4,7 @@ SubdivideShaderInterface::SubdivideShaderInterface()
 	: shaderProgram(0), vertShader(0), fragShader(0),
 	radTex(-1), resTex(-1),
 	vao(0), texcoordVbo(0), indexVbo(0),
-	fbo(0), bilinearSampler(0) {
+	fbo(0), bilinearClampToEdgeSampler(0) {
 }
 
 
@@ -48,7 +48,7 @@ void SubdivideShaderInterface::init() {
 	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
 	glBufferData(GL_ARRAY_BUFFER, 8*sizeof(float), texcoords, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(0);
 
 	glGenBuffers(1, &indexVbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
@@ -70,9 +70,7 @@ void SubdivideShaderInterface::init() {
 							GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7};
 	glDrawBuffers(8, drawBuffers);
 
-	// unbind framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	/*
 	// check framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		fprintf(stderr, "ERROR: could not create susi fbo \
@@ -80,7 +78,7 @@ void SubdivideShaderInterface::init() {
 		printf("Press enter to exit...");
 		getchar();
 		exit(EXIT_FAILURE);
-	}
+	}*/
 
 	// unbind framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -90,9 +88,11 @@ void SubdivideShaderInterface::init() {
 	
 	// set up texture sampler object
 	
-	glGenSamplers(1, &bilinearSampler);
-	glSamplerParameteri(bilinearSampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glSamplerParameteri(bilinearSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glGenSamplers(1, &bilinearClampToEdgeSampler);
+	glSamplerParameteri(bilinearClampToEdgeSampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glSamplerParameteri(bilinearClampToEdgeSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameteri(bilinearClampToEdgeSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(bilinearClampToEdgeSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	Utils::exitOnGLError("ERROR: coud not set up susi sampler object");
 }
@@ -105,11 +105,11 @@ void SubdivideShaderInterface::setUniforms(GLuint radTex, GLuint resTex) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, radTex);
-	glBindSampler(0, bilinearSampler);
+	glBindSampler(0, bilinearClampToEdgeSampler);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, resTex);
-	glBindSampler(1, bilinearSampler);
+	glBindSampler(1, bilinearClampToEdgeSampler);
 }
 
 
@@ -139,7 +139,7 @@ void SubdivideShaderInterface::draw(GLuint radTexBL, GLuint resTexBL,
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, resTexTL, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, radTexTR, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, resTexTR, 0);
-
+	
 	// draw
 
 	glUseProgram(shaderProgram);
@@ -147,6 +147,18 @@ void SubdivideShaderInterface::draw(GLuint radTexBL, GLuint resTexBL,
 	glBindVertexArray(vao);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+
+
+	// detach fbo color attachments
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, 0, 0);
+
 
 
 	// unbind framebuffer, restore original viewport
@@ -227,7 +239,7 @@ void SubdivideShaderInterface::close() {
 
 	// destroy sampler
 
-	glDeleteSamplers(1, &bilinearSampler);
+	glDeleteSamplers(1, &bilinearClampToEdgeSampler);
 
 	Utils::exitOnGLError("ERROR: could not destroy susi sampler object");
 }
