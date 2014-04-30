@@ -3,6 +3,13 @@
 unsigned int Quad::nextId = 1;
 const float Quad::zeros[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT] = {0.0f};
 
+const float Quad::positionsModel[] = {	0.0f, 0.0f, 0.0f,
+										1.0f, 0.0f, 0.0f,
+										1.0f, 1.0f, 0.0f,
+										0.0f, 1.0f, 0.0f	};
+const float Quad::texcoords[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+const int Quad::numVertices = 4;
+
 const unsigned short Quad::indices[] = {0,1,2,0,2,3};
 const int Quad::numIndices = 6;
 
@@ -16,7 +23,36 @@ Quad::Quad()
 		currentShooterRow(0), currentShooterCol(0) {
 
 	id = nextId++;
+	parentId = id;
 }
+
+
+
+
+void Quad::updateNormalAndModel() {
+
+	n = glm::normalize(glm::cross(u, v));
+
+	// update model matrix (glm mat constructor order is tranposed)
+	model = glm::mat4(	u.x,		u.y,		u.z,		0.0f,
+						v.x,		v.y,		v.z,		0.0f,
+						n.x,		n.y,		n.z,		0.0f,
+						position.x,	position.y,	position.z,	1.0f
+					);
+}
+
+void Quad::setProperties(const glm::vec3 &position, const glm::vec3 &u,
+		const glm::vec3 &v, const glm::vec3 &reflectance) {
+
+	this->position = position;
+	this->u = u;
+	this->v = v;
+	this->reflectance = reflectance;
+
+	updateNormalAndModel();
+}
+
+
 
 
 
@@ -24,11 +60,7 @@ void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
 		const glm::vec3 &v, const glm::vec3 &reflectance,
 		const glm::vec3 &emittance) {
 
-	this->position = position;
-	this->u = u;
-	this->v = v;
-	n = glm::normalize(glm::cross(u, v));
-	this->reflectance = reflectance;
+	setProperties(position, u, v, reflectance);
 
 	this->subdivideLevel = 0;
 
@@ -70,14 +102,12 @@ void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
 
 
 void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
-		const glm::vec3 &v, const glm::vec3 &reflectance, int subdivideLevel) {
+		const glm::vec3 &v, const glm::vec3 &reflectance,
+		unsigned int parentId, int subdivideLevel) {
 
-	this->position = position;
-	this->u = u;
-	this->v = v;
-	n = glm::normalize(glm::cross(u, v));
-	this->reflectance = reflectance;
+	setProperties(position, u, v, reflectance);
 
+	this->parentId = parentId;
 	this->subdivideLevel = subdivideLevel;
 
 	initTextures(0);
@@ -254,10 +284,12 @@ void Quad::clearResidualTex() {
 
 void Quad::setU(const glm::vec3 &u) {
 	this->u = u;
+	updateNormalAndModel();
 }
 
 void Quad::setV(const glm::vec3 &v) {
 	this->v = v;
+	updateNormalAndModel();
 }
 
 void Quad::setSubdivideLevel(int subdivideLevel) {
@@ -266,6 +298,10 @@ void Quad::setSubdivideLevel(int subdivideLevel) {
 
 unsigned int Quad::getId() const {
 	return id;
+}
+
+unsigned int Quad::getParentId() const {
+	return parentId;
 }
 
 int Quad::getSubdivideLevel() const {
@@ -286,6 +322,10 @@ glm::vec3 Quad::getV() const {
 
 glm::vec3 Quad::getN() const {
 	return n;
+}
+
+const glm::mat4 &Quad::getModel() const {
+	return model;
 }
 
 GLuint Quad::getRadiosityTex() const {

@@ -27,12 +27,12 @@ void main(void) {
 	vec2 texcoordTR = texcoordBL + vec2(0.5, 0.5);
 
 	// bottom-left quadrant
-	fSubRadBL = vec4(1,0,0,1);//texture2D(_radTex, texcoordBL);
-	fSubResBL = vec4(1,0,0,1);//texture2D(_resTex, texcoordBL);
+	fSubRadBL = texture2D(_radTex, texcoordBL);
+	fSubResBL = texture2D(_resTex, texcoordBL);
 
 	// bottom-right quadrant
-	fSubRadBR = vec4(1,0,0,1);//texture2D(_radTex, texcoordBR);
-	fSubResBR = vec4(1,0,0,1);//texture2D(_resTex, texcoordBR);
+	fSubRadBR = texture2D(_radTex, texcoordBR);
+	fSubResBR = texture2D(_resTex, texcoordBR);
 
 	// top-left quadrant
 	fSubRadTL = texture2D(_radTex, texcoordTL);

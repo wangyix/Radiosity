@@ -84,6 +84,8 @@ void SceneShaderInterface::setVertices(int numVertices, const float *positions,c
 
 	// update vbos
 
+	glBindVertexArray(vao);
+
 	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
 	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
 

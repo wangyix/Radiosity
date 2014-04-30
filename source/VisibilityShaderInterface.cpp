@@ -113,7 +113,7 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	Utils::exitOnGLError("ERROR: coud not set up vsi fbo");
 }
 
-
+/*
 void VisibilityShaderInterface::setVertices(int numVertices, const float *positions,
 		const unsigned int *ids) {
 
@@ -127,6 +127,9 @@ void VisibilityShaderInterface::setVertices(int numVertices, const float *positi
 	glBindBuffer(GL_ARRAY_BUFFER, idVbo);
 	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(unsigned int), ids, GL_STATIC_DRAW);
 }
+*/
+
+
 
 
 void VisibilityShaderInterface::setNearFar(float near, float far) {
@@ -135,8 +138,6 @@ void VisibilityShaderInterface::setNearFar(float near, float far) {
 
 	glUniform2f(this->nearFar, near, far);
 }
-
-
 
 
 

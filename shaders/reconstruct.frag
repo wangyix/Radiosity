@@ -34,13 +34,14 @@ void main(void) {
 	// convert ndc to texture coordinates [-1,1]->[0,1]
 	vec2 visTexcoord = hemiNdc*0.5 + 0.5;
 
-	/*
+
 	// see if this receiver texel is visible
-	uint visId = texture2D(_visTex, visTexcoord).x;						// checked
-	float visibility = (visId == _id) ? 1.0 : 0.0;
-	*/
-	
 	float visibility = 0.0;
+	/*
+	// non-PCF:
+	uint visId = texture2D(_visTex, visTexcoord).x;						// checked
+	visibility = (visId == _id) ? 1.0 : 0.0;
+	*/
 	
 	// PCF: if any sample is visible, then this texel is visible
 	// 3x3 samples
@@ -53,8 +54,8 @@ void main(void) {
 			visibility += (visId == _id) ? 1.0 : 0.0;
 		}
 	}*/
-
-	// 5x5 outer ring sample
+	
+	// PCF: 5x5 outer ring sampling
 	vec2 sampleTexcoord = visTexcoord - 2*_visTexelSize;
 	for (int i=0; i<4; i++) {
 		uint visId = texture2D(_visTex, sampleTexcoord).x;
@@ -77,7 +78,7 @@ void main(void) {
 		sampleTexcoord.s -= _visTexelSize.s;
 	}
 	visibility = min(visibility, 1.0);
-
+	
 
 	// calculate form factor: cosi*cosj/(pi*d^2)
 	float cosi = max(-dot(_normal, r), 0.0);

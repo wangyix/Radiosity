@@ -122,6 +122,7 @@ void QuadMesh::subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr,
 	glm::vec3 position = oldQuad->getPosition();
 	glm::vec3 reflectance = oldQuad->getReflectance();
 
+	int parentId = oldQuad->getParentId();
 	int nextSubdivideLevel = oldQuad->getSubdivideLevel() + 1;
 
 	// update geometry of original quad to become the bottom-left quadrant
@@ -136,7 +137,7 @@ void QuadMesh::subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr,
 	// create new quad for bottom-right quadrant
 	*br_ptr = &quads[newQuadIndex];
 	quads[newQuadIndex].init(position+halfU, halfU, halfV,
-			reflectance, nextSubdivideLevel);
+			reflectance, parentId, nextSubdivideLevel);
 	updatePositionsOfQuad(newQuadIndex);
 	updateTexcoordsOfQuad(newQuadIndex);
 	updateIdsOfQuad(newQuadIndex);
@@ -146,7 +147,7 @@ void QuadMesh::subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr,
 	// create new quad for top-left quadrant
 	*tl_ptr = &quads[newQuadIndex];
 	quads[newQuadIndex].init(position+halfV, halfU, halfV,
-			reflectance, nextSubdivideLevel);
+			reflectance, parentId, nextSubdivideLevel);
 	updatePositionsOfQuad(newQuadIndex);
 	updateTexcoordsOfQuad(newQuadIndex);
 	updateIdsOfQuad(newQuadIndex);
@@ -156,7 +157,7 @@ void QuadMesh::subdivideQuad(int i, Quad **bl_ptr, Quad **br_ptr, Quad **tl_ptr,
 	// create new quad for top-right quadrant
 	*tr_ptr = &quads[newQuadIndex];
 	quads[newQuadIndex].init(position+halfU+halfV, halfU, halfV,
-			reflectance, nextSubdivideLevel);
+			reflectance, parentId, nextSubdivideLevel);
 	updatePositionsOfQuad(newQuadIndex);
 	updateTexcoordsOfQuad(newQuadIndex);
 	updateIdsOfQuad(newQuadIndex);

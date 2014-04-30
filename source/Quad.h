@@ -15,12 +15,17 @@ private:
 	static const float zeros[];
 
 public:
+	static const float positionsModel[12];
+	static const float texcoords[8];
+	static const int numVertices;
+	
 	static const unsigned short indices[6];
 	static const int numIndices;
 
 private:
 
 	unsigned int id;
+	unsigned int parentId;
 
 	int subdivideLevel;
 
@@ -29,6 +34,9 @@ private:
 	glm::vec3 v;
 	glm::vec3 n;
 	glm::vec3 reflectance;
+
+	glm::mat4 model;
+
 
 	// pingpong buffers
 	GLuint currentRadiosityTex;
@@ -52,7 +60,7 @@ public:
 
 	void init(const glm::vec3 &position, const glm::vec3 &u,
 		const glm::vec3 &v, const glm::vec3 &reflectance,
-		int subdivideLevel);
+		unsigned int parentId, int subdivideLevel);
 
 	void init(const glm::vec3 &position, const glm::vec3 &u,
 		const glm::vec3 &v, const glm::vec3 &reflectance,
@@ -79,10 +87,12 @@ public:
 	void setSubdivideLevel(int subdivideLevel);
 
 	unsigned int getId() const;
+	unsigned int getParentId() const;
 	glm::vec3 getPosition() const;
 	glm::vec3 getU() const;
 	glm::vec3 getV() const;
 	glm::vec3 getN() const;
+	const glm::mat4 &getModel() const;
 	GLuint getRadiosityTex() const;
 	GLuint getResidualTex() const;
 	GLuint getNextRadiosityTex() const;
@@ -90,7 +100,6 @@ public:
 	glm::vec3 getReflectance() const;
 	int getCurrentShooterRow() const;
 	int getCurrentShooterCol() const;
-	
 	int getSubdivideLevel() const;
 
 
@@ -106,7 +115,11 @@ public:
 
 private:
 	
-	void initTextures(float *initialPixels);
+	void setProperties(const glm::vec3 &position, const glm::vec3 &u,
+			const glm::vec3 &v, const glm::vec3 &reflectance);
+	void updateNormalAndModel();
 
+
+	void initTextures(float *initialPixels);
 	void setupCurrentTexture(float *initialPixels);
 };

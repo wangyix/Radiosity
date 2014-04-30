@@ -125,43 +125,51 @@ void ReconstructShaderInterface::setVisTexelSize(float du, float dv) {
 }
 
 
-void ReconstructShaderInterface::setShooterUniforms(const glm::mat4 &modelView,
-		const glm::vec3 &shooterPower, GLuint visibilityTexture) {
+void ReconstructShaderInterface::setShooterUniforms(const glm::vec3 &shooterPower) {
+
+	glUseProgram(shaderProgram);
+
+	glUniform3fv(this->shooterPower, 1, glm::value_ptr(shooterPower));
+
+}
+
+
+void ReconstructShaderInterface::setReceiverUniforms(const glm::mat4 &modelView,
+		unsigned int id, const glm::vec3 &reflectance,
+		const glm::vec3 &normalShooterView) {
 
 	glUseProgram(shaderProgram);
 
 	glUniformMatrix4fv(this->modelView, 1, GL_FALSE, glm::value_ptr(modelView));
-	glUniform3fv(this->shooterPower, 1, glm::value_ptr(shooterPower));
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, visibilityTexture);
-	glBindSampler(0, nearestClampToBorderSampler);
-}
-
-
-void ReconstructShaderInterface::setReceiverUniforms(unsigned int id,
-		const glm::vec3 &reflectance, const glm::vec3 &normalShooterView,
-		GLuint radTex, GLuint resTex) {
-
-	glUseProgram(shaderProgram);
-
 	glUniform1ui(this->id, id);
 	glUniform3fv(this->reflectance, 1, glm::value_ptr(reflectance));
 	glUniform3fv(this->normal, 1, glm::value_ptr(normalShooterView));
 
+	
+}
+
+
+void ReconstructShaderInterface::setTextureUniforms(GLuint visibilityTex,
+			GLuint radiosityTex, GLuint residualTex) {
+
+	glUseProgram(shaderProgram);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, visibilityTex);
+	glBindSampler(0, nearestClampToBorderSampler);
+
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, radTex);
+	glBindTexture(GL_TEXTURE_2D, radiosityTex);
 	glBindSampler(1, nearestSampler);
 
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, resTex);
+	glBindTexture(GL_TEXTURE_2D, residualTex);
 	glBindSampler(2, nearestSampler);
 }
 
 
-
-void ReconstructShaderInterface::draw(int baseVertex,
-		GLuint nextRadTex, GLuint nextResTex, int texWidth, int texHeight) {
+void ReconstructShaderInterface::draw(GLuint nextRadTex, GLuint nextResTex,
+		int texWidth, int texHeight) {
 
 	// set framebuffer, viewport
 	GLint vp[4];
@@ -182,13 +190,7 @@ void ReconstructShaderInterface::draw(int baseVertex,
 
 	glBindVertexArray(vao);
 
-	glDrawElementsBaseVertex(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL, baseVertex);
-	
-
-	// detach fbo color attachments
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, 0, 0);
-
+	glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, 0);
 
 	// unbind framebuffer, restore original viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -43,16 +43,16 @@ public:
 	
 	void setVisTexelSize(float du, float dv);
 
-	void setShooterUniforms(const glm::mat4 &modelView,
-							const glm::vec3 &shooterPower,
-							GLuint visibilityTexture);
+	void setShooterUniforms(const glm::vec3 &shooterPower);
 
-	void setReceiverUniforms(unsigned int id,
+	void setReceiverUniforms(const glm::mat4 &modelView, unsigned int id,
 							const glm::vec3 &reflectance,
-							const glm::vec3 &normalShooterView,
-							GLuint radTex, GLuint resTex);
+							const glm::vec3 &normalShooterView);
 
-	void draw(int baseVertex, GLuint nextRadTex, GLuint nextResTex,
+	void setTextureUniforms(GLuint visibilityTex,
+			GLuint radiosityTex, GLuint residualTex);
+
+	void draw(GLuint nextRadTex, GLuint nextResTex,
 			int texWidth, int texHeight);
 
 	void close();

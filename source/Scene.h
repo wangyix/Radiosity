@@ -13,8 +13,8 @@
 
 #define SCENE_FILE "./scenefiles/cornell_box_notess.txt"
 
-#define SHOOTER_LEVEL 1
-#define MAX_SUBDIVIDE_LEVEL 2
+#define SHOOTER_LEVEL 0
+#define MAX_SUBDIVIDE_LEVEL 3
 
 #define CAMERA_MOVE_SPEED 3.0f		// dist per sec
 #define CAMERA_ROTATE_SPEED 0.2f	// deg per pixel

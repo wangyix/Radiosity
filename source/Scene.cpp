@@ -16,8 +16,7 @@ int Scene::init() {
 		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
 	vsi.setNearFar(0.0001f, 1000.0f);	// do not set near to 0: shooter may render itself in front of everything
 	
-	rsi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
-		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
+	rsi.init(Quad::numVertices, Quad::positionsModel, Quad::texcoords, Quad::numIndices, Quad::indices);
 	rsi.setVisTexelSize(1.0f/(float)VisibilityShaderInterface::getVisTextureWidth(),
 		1.0f/(float)VisibilityShaderInterface::getVisTextureHeight());
 
@@ -95,9 +94,13 @@ void Scene::update(GLFWwindow *window, double delta) {
 
 void Scene::render() {
 
-	static int shootIteration = 0;	// for testing!!!!!!!!!!!
+	static int shootIteration = 0;
 	static bool converged = false;
 	
+	static int mod = 0;// FOR TESTING!!!
+
+
+	bool meshChanged = false;
 
 	if (!converged) {
 
@@ -119,16 +122,16 @@ void Scene::render() {
 
 		// stop shooting if max residual power is low enough
 		if (maxResPowerMag < 0.5f)	{
+printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 			converged = true;
 		}
 
 
 		Quad* shooter = quadMesh.getQuad(shooterIndex);
 
-		printf("\nshooter quad is id=%d (level=%d), powerMag=%f\n", shooter->getId(), shooter->getSubdivideLevel(), maxResPowerMag);
+		printf("\n\nshooter quad is id=%d (level=%d), powerMag = %f\n", shooter->getId(), shooter->getSubdivideLevel(), maxResPowerMag);
 
 
-		bool quadMeshChanged = false;
 
 		// shoot residual irradiance from each shooter cell of this shooter	
 
@@ -138,37 +141,29 @@ void Scene::render() {
 
 		while (shooter->hasNextShooterCell()) {
 
-			printf("	shooter row, col = (%d, %d)\n", shooter->getCurrentShooterRow(), shooter->getCurrentShooterCol());
+			printf("\n	shooter row, col = (%d, %d)\n", shooter->getCurrentShooterRow(), shooter->getCurrentShooterCol());
 			
 			shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
-		
-
-			// update vbos for vsi if the mesh changed
-			if (quadMeshChanged) {
-				vsi.setVertices(quadMesh.getNumVertices(),
-							quadMesh.getPositionsArray(), quadMesh.getIdsArray());
-				quadMeshChanged = false;
-			}
 
 			// render visibility texture from shooter's perspective
 			vsi.setModelView(shooterCellView);
 			vsi.draw();
 
+
 			// set up shooter uniforms for reconstruction pass
-			rsi.setShooterUniforms(shooterCellView, shooterCellPower,
-					vsi.getVisTexture());
+			rsi.setShooterUniforms(shooterCellPower);
 
 
 			// update each receiving quad's residual
 			// more quads may be appended to quadMesh if subdividing occurs
 			
-			int i = 0;
-			while (i < quadMesh.getNumQuads()) {
+			int receiverIndex = 0;
+			while (receiverIndex < quadMesh.getNumQuads()) {
 
-				Quad *receiver = quadMesh.getQuad(i);
+				Quad *receiver = quadMesh.getQuad(receiverIndex);
 				
 				if (receiver == shooter) {
-					i++;
+					receiverIndex++;
 					continue;
 				}
 
@@ -180,43 +175,51 @@ void Scene::render() {
 				glm::vec3 normalShooterView = glm::vec3(normalShooterView4.x,
 						normalShooterView4.y, normalShooterView4.z);
 
-				rsi.setReceiverUniforms(receiver->getId(), receiver->getReflectance(),
-						normalShooterView,
-						receiver->getRadiosityTex(), receiver->getResidualTex());
+				rsi.setReceiverUniforms(shooterCellView * receiver->getModel(),
+						receiver->getParentId(), receiver->getReflectance(),
+						normalShooterView);
 
-				rsi.draw(quadMesh.getBaseVertex(i), receiver->getNextRadiosityTex(),
-						receiver->getNextResidualTex(),
+				rsi.setTextureUniforms(vsi.getVisTexture(), receiver->getRadiosityTex(), receiver->getResidualTex());
+
+				rsi.draw(receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
 						Quad::getTexWidth(), Quad::getTexHeight());
 
-				receiver->swapTextures();
 
-	receiver->printRadTex();
-
-				
 				bool subdivide;
+
 				// TODO: add code to determine if this quad needs to be subdivided
 				// run gradient shader on receiver's next rad tex
 
-				//srand(time(NULL));
-				subdivide = (rand()%10>=0);
+
+
+subdivide = (receiverIndex%7==mod);
+
+
 
 				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
 
-					i++;
+					receiver->swapTextures();
+
+					receiverIndex++;
 				
 				} else {
 
 					// subdivide this receiver quad in the mesh
 					Quad *subQuads[4];
-					quadMesh.subdivideQuad(i, &subQuads[0], &subQuads[1], &subQuads[2], &subQuads[3]);
+					quadMesh.subdivideQuad(receiverIndex, &subQuads[0], &subQuads[1], &subQuads[2], &subQuads[3]);
 
-					for (int j=0; j<4; j++)
-						printf("			created child quad id=%d (level=%d)\n", subQuads[j]->getId(), subQuads[j]->getSubdivideLevel());
+					// NOTE: receiver ptr no longer valid at this point. use subQuads[0]
+					// NOTE: shooter ptr  no longer valid at this point.
+
+
+					//for (int j=0; j<4; j++)
+						//printf("			created child quad id=%d (level=%d)\n", subQuads[j]->getId(), subQuads[j]->getSubdivideLevel());
 
 
 					// Copy rad, res values of original quad into the 4 subdivided quads
 					// using shader. Bilinear filtering is used to calculate new in-between values
-					susi.setUniforms(receiver->getRadiosityTex(), receiver->getResidualTex());
+
+					susi.setUniforms(subQuads[0]->getRadiosityTex(), subQuads[0]->getResidualTex());
 
 					susi.draw(	subQuads[0]->getNextRadiosityTex(), subQuads[0]->getNextResidualTex(),
 								subQuads[1]->getNextRadiosityTex(), subQuads[1]->getNextResidualTex(),
@@ -228,34 +231,39 @@ void Scene::render() {
 						subQuads[j]->swapTextures();
 					}
 
-					quadMeshChanged = true;
 
-					// recalculate any quad pointers we were using
-					shooter = quadMesh.getQuad(shooterIndex);
+					shooter = quadMesh.getQuad(shooterIndex); // recalculate the shooter pointer
 
-					// do not increment i; the current receiver has been replaced with its bottom-left
+					meshChanged = true;
+
+					// do not increment receiverIndex; the current receiver has been replaced with its bottom-left
 					// quadrant and needs to go thru the reconstruction pass again
-
-	subQuads[0]->printRadTex();
+					
 				}
-			}
-		}
+
+			}	// end receiver loop
+
+mod=(mod+1)%7;
+		
+		}	// end shooter-cells loop
+		
 		shooter->clearResidualTex();
 
 		printf("done with shoot iteration %d\n", shootIteration);
 		shootIteration++;
 
-	}
-	
+	}	// end if (!converged)
+
 
 
 
 	// render all quads to screen
 	
-	// TODO: don't update ssi vbos every time before rendering, only if out of sync with mesh
-	ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
-		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
-
+	if (meshChanged) {
+		ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
+				quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
+		meshChanged = false;
+	}
 	ssi.setModelViewProj(camera.getViewProj());
 	for (int i=0; i<quadMesh.getNumQuads(); i++) {
 
@@ -263,19 +271,9 @@ void Scene::render() {
 		ssi.draw(quadMesh.getBaseVertex(i));
 	
 	}
-
-	/*
-	if (testFlag) {
-		ssi.setModelViewProj(camera.getViewProj());
-		for (int i=0; i<quadMesh.getNumQuads(); i++) {
-			ssi.setTexture(quadMesh.getQuad(i)->getRadiosityTex());
-			ssi.draw(quadMesh.getBaseVertex(i));
-		}
-	} else {
-		vsi.setModelView(camera.getView());
-		vsi.draw();
-	}*/
 }
+
+
 
 void Scene::close() {
 	
