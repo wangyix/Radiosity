@@ -34,6 +34,7 @@ public:
 		int numIndices, const unsigned short *indices);
 
 	void setModelViewProj(const glm::mat4 &modelViewProj);
+	void preDraw(int windowWidth, int windowHeight);
 	void setTexture(GLuint texture);
 	void draw(int baseVertex);
 	void close();

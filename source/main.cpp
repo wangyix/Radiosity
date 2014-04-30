@@ -39,7 +39,7 @@ void init( void )
 
 	glClearColor( 0.0, 0.0f, 0.0f, 0.0f );
 
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);	// handled by shader interfaces
 	glDepthFunc(GL_LESS);
 	Utils::exitOnGLError("ERROR: could not set depth testing options");
 
@@ -57,7 +57,6 @@ void init( void )
 
 void reshape( GLFWwindow* window, int w, int h )
 {
-	glViewport( 0, 0, (GLsizei)w, (GLsizei)h );
 	scene.onResize(w, h);
 }
 

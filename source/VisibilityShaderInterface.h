@@ -35,8 +35,6 @@ public:
 	VisibilityShaderInterface();
 	
 	void init(int numVertices, const float *positions, const unsigned int *ids);
-	
-	//void setVertices(int numVertices, const float *positions, const unsigned int *ids);
 
 	void setNearFar(float near, float far);
 	void setModelView(const glm::mat4 &modelView);

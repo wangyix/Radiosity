@@ -105,10 +105,25 @@ void SceneShaderInterface::setModelViewProj(const glm::mat4 &modelViewProj) {
 }
 
 
+void SceneShaderInterface::preDraw(int windowWidth, int windowHeight) {
+	
+	// set framebuffer, viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, windowWidth, windowHeight);
+
+	// enable depth test and depth writes
+	glEnable(GL_DEPTH_TEST);
+
+
+	glUseProgram(shaderProgram);
+
+	glBindVertexArray(vao);
+}
+
 
 void SceneShaderInterface::setTexture(GLuint texture) {
 
-	glUseProgram(shaderProgram);
+	//glUseProgram(shaderProgram);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -118,12 +133,6 @@ void SceneShaderInterface::setTexture(GLuint texture) {
 
 
 void SceneShaderInterface::draw(int baseVertex) {
-
-	glUseProgram(shaderProgram);
-
-	glBindVertexArray(vao);
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
 
 	glDrawElementsBaseVertex(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL, baseVertex);
 }

@@ -1,8 +1,8 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: ssi(), vsi(), rsi(), susi(), quadMesh(),
-	testFlag(false), testKeyDown(false) {
+	: vsi(), rsi(), gsi(), susi(), ssi(), quadMesh(),
+	windowWidth(0), windowHeight(0) {
 }
 
 int Scene::init() {
@@ -10,17 +10,21 @@ int Scene::init() {
 	quadMesh.load(SCENE_FILE);
 	
 	ssi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
-		quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
+			quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 		
 	vsi.init(quadMesh.getNumVertices(),
-		quadMesh.getPositionsArray(), quadMesh.getIdsArray());
+			quadMesh.getPositionsArray(), quadMesh.getIdsArray());
 	vsi.setNearFar(0.0001f, 1000.0f);	// do not set near to 0: shooter may render itself in front of everything
 	
 	rsi.init(Quad::numVertices, Quad::positionsModel, Quad::texcoords, Quad::numIndices, Quad::indices);
 	rsi.setVisTexelSize(1.0f/(float)VisibilityShaderInterface::getVisTextureWidth(),
-		1.0f/(float)VisibilityShaderInterface::getVisTextureHeight());
+			1.0f/(float)VisibilityShaderInterface::getVisTextureHeight());
 
 	susi.init();
+
+	gsi.init();
+	gsi.setThresholdAndRadTexelSize(GRADIENT_THRESHOLD,
+			1.0f/(float)Quad::getTexWidth(), 1.0f/(float)Quad::getTexHeight());
 
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
@@ -31,6 +35,8 @@ int Scene::init() {
 
 
 void Scene::onResize(int w, int h) {
+	windowWidth = w;
+	windowHeight = h;
 	camera.setAspect((float)w / (float)h);
 }
 
@@ -78,17 +84,7 @@ void Scene::update(GLFWwindow *window, double delta) {
 		camera.rotateUp(-CAMERA_ROTATE_SPEED*dy);
 	}
 	prevX = x;
-	prevY = y;
-
-
-
-	// TEST!!!! toggle testFlag if F is pressed
-	bool down = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
-	if (down && !testKeyDown) {
-		testFlag = !testFlag;
-	}
-	testKeyDown = down;
-	
+	prevY = y;	
 }
 
 
@@ -96,8 +92,6 @@ void Scene::render() {
 
 	static int shootIteration = 0;
 	static bool converged = false;
-	
-	static int mod = 0;// FOR TESTING!!!
 
 
 	bool meshChanged = false;
@@ -167,7 +161,6 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 					continue;
 				}
 
-				//printf("		Receiver is patch id=%d (level %d)\n", receiver->getId(), receiver->getSubdivideLevel());
 
 				glm::vec4 normalShooterView4 = shooterCellView *
 						glm::vec4(receiver->getN(), 0.0f);
@@ -184,16 +177,28 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 				rsi.draw(receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
 						Quad::getTexWidth(), Quad::getTexHeight());
 
+				if (receiverIndex==19) {
+					receiver->printRadTex();
+					receiver->printResTex();
+					receiver->printNextRadTex();
+					receiver->printNextResTex();
+				}
 
 				bool subdivide;
-
+				
 				// TODO: add code to determine if this quad needs to be subdivided
 				// run gradient shader on receiver's next rad tex
+				/*
+				gsi.setTexture(receiver->getNextRadiosityTex());
+				int pixelsDiscarded = gsi.draw(Quad::getTexWidth(), Quad::getTexHeight());
 
+				printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
+						receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
 
+				subdivide = pixelsDiscarded > 2*Quad::getTexWidth();
+				*/
 
-subdivide = (receiverIndex%7==mod);
-
+	subdivide = shootIteration==1;
 
 
 				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
@@ -203,7 +208,10 @@ subdivide = (receiverIndex%7==mod);
 					receiverIndex++;
 				
 				} else {
+					
+					printf("			subdividing quad id=%d (level=%d)\n", receiver->getId(), receiver->getSubdivideLevel());
 
+					
 					// subdivide this receiver quad in the mesh
 					Quad *subQuads[4];
 					quadMesh.subdivideQuad(receiverIndex, &subQuads[0], &subQuads[1], &subQuads[2], &subQuads[3]);
@@ -242,8 +250,6 @@ subdivide = (receiverIndex%7==mod);
 				}
 
 			}	// end receiver loop
-
-mod=(mod+1)%7;
 		
 		}	// end shooter-cells loop
 		
@@ -264,6 +270,7 @@ mod=(mod+1)%7;
 				quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 		meshChanged = false;
 	}
+	ssi.preDraw(windowWidth, windowHeight);
 	ssi.setModelViewProj(camera.getViewProj());
 	for (int i=0; i<quadMesh.getNumQuads(); i++) {
 
@@ -284,6 +291,8 @@ void Scene::close() {
 	rsi.close();
 
 	susi.close();
+
+	gsi.close();
 
 	quadMesh.unload();
 }

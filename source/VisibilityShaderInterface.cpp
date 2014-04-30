@@ -101,34 +101,17 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	// check framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		fprintf(stderr, "ERROR: could not create vsi fbo \
-						(failed to return GL_FRAMEBUFFER_COMPLETE)");
+						(failed to return GL_FRAMEBUFFER_COMPLETE)\n");
 		printf("Press enter to exit...");
 		getchar();
 		exit(EXIT_FAILURE);
 	}
 
-	// unbind framebuffer
+	// unbind framebuffer (to prevent possible all-black first frame)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	Utils::exitOnGLError("ERROR: coud not set up vsi fbo");
 }
-
-/*
-void VisibilityShaderInterface::setVertices(int numVertices, const float *positions,
-		const unsigned int *ids) {
-
-	this->numVertices = numVertices;
-
-	// update vbos
-	
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, idVbo);
-	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(unsigned int), ids, GL_STATIC_DRAW);
-}
-*/
-
 
 
 
@@ -152,12 +135,13 @@ void VisibilityShaderInterface::setModelView(const glm::mat4 &modelView) {
 void VisibilityShaderInterface::draw() {
 	
 	// set framebuffer, viewport
-	GLint vp[4];
-	glGetIntegerv(GL_VIEWPORT, vp);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
 
-	
+	// enable depth test and depth writes
+	glEnable(GL_DEPTH_TEST);
+
+
 	// clear color attachment 0 and depth of framebuffer
 	GLint clearColor[] = {0, 0, 0, 0};
 	glClearBufferiv(GL_COLOR, 0, clearColor);
@@ -172,40 +156,35 @@ void VisibilityShaderInterface::draw() {
 	glBindVertexArray(vao);
 
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawArrays(GL_PATCHES, 0, numVertices);
-
-	
-	// unbind framebuffer, restore original viewport
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, vp[2], vp[3]);
-	
-	
-	/*
-	// TEST!!! read back
-	glBindTexture(GL_TEXTURE_2D, visTexture);
-	unsigned int *ids = new unsigned int[VIS_BUFFER_WIDTH*VIS_BUFFER_HEIGHT];
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ids);
-	bool nonZero = false;
-	for (int i=0; i<VIS_BUFFER_HEIGHT; i++) {
-		for (int j=0; j<VIS_BUFFER_WIDTH; j++) {
-			
-			printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
-			if (ids[i*VIS_BUFFER_WIDTH+j] != 0) {
-				nonZero = true;
-			}
-		}
-		printf("\n");
-	}
-	delete[] ids;
-	/*
-	if (nonZero)
-		printf("1");
-	else
-		printf("0");
-	*/
-	//getchar();
-	
+	glDrawArrays(GL_PATCHES, 0, numVertices);	
 }
+
+/*
+// TEST!!! read back
+glBindTexture(GL_TEXTURE_2D, visTexture);
+unsigned int *ids = new unsigned int[VIS_BUFFER_WIDTH*VIS_BUFFER_HEIGHT];
+glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, ids);
+bool nonZero = false;
+for (int i=0; i<VIS_BUFFER_HEIGHT; i++) {
+	for (int j=0; j<VIS_BUFFER_WIDTH; j++) {
+			
+		printf(" %d", ids[i*VIS_BUFFER_WIDTH+j]);
+		if (ids[i*VIS_BUFFER_WIDTH+j] != 0) {
+			nonZero = true;
+		}
+	}
+	printf("\n");
+}
+delete[] ids;
+/*
+if (nonZero)
+	printf("1");
+else
+	printf("0");
+*/
+//getchar();
+
+
 
 
 void VisibilityShaderInterface::close() {

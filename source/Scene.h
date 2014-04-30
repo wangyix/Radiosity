@@ -1,10 +1,11 @@
 #pragma once
 
 #include "glincludes.h"
-#include "SceneShaderInterface.h"
 #include "VisibilityShaderInterface.h"
 #include "ReconstructShaderInterface.h"
+#include "GradientShaderInterface.h"
 #include "SubdivideShaderInterface.h"
+#include "SceneShaderInterface.h"
 #include "QuadMesh.h"
 #include "Camera.h"
 
@@ -14,7 +15,8 @@
 #define SCENE_FILE "./scenefiles/cornell_box_notess.txt"
 
 #define SHOOTER_LEVEL 0
-#define MAX_SUBDIVIDE_LEVEL 3
+#define GRADIENT_THRESHOLD 0.5f
+#define MAX_SUBDIVIDE_LEVEL 1
 
 #define CAMERA_MOVE_SPEED 3.0f		// dist per sec
 #define CAMERA_ROTATE_SPEED 0.2f	// deg per pixel
@@ -22,17 +24,17 @@
 class Scene {
 private:
 
-	SceneShaderInterface ssi;
 	VisibilityShaderInterface vsi;
 	ReconstructShaderInterface rsi;
+	GradientShaderInterface gsi;
 	SubdivideShaderInterface susi;
+	SceneShaderInterface ssi;
 
 	QuadMesh quadMesh;
 
 	Camera camera;
 
-	bool testKeyDown;
-	bool testFlag;
+	int windowWidth, windowHeight;
 
 public:
 
