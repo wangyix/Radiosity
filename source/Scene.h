@@ -5,6 +5,7 @@
 #include "VisibilityShaderInterface.h"
 #include "ReconstructShaderInterface.h"
 #include "SubdivideShaderInterface.h"
+#include "GradientShaderInterface.h"
 #include "QuadMesh.h"
 #include "Camera.h"
 
@@ -14,7 +15,8 @@
 #define SCENE_FILE "./scenefiles/cornell_box_notess.txt"
 
 #define SHOOTER_LEVEL 0
-#define MAX_SUBDIVIDE_LEVEL 3
+#define MAX_SUBDIVIDE_LEVEL 2
+#define GRADIENT_THRESHOLD 300.0f
 
 #define CAMERA_MOVE_SPEED 3.0f		// dist per sec
 #define CAMERA_ROTATE_SPEED 0.2f	// deg per pixel
@@ -26,13 +28,13 @@ private:
 	VisibilityShaderInterface vsi;
 	ReconstructShaderInterface rsi;
 	SubdivideShaderInterface susi;
+	GradientShaderInterface gsi;
 
 	QuadMesh quadMesh;
 
 	Camera camera;
 
-	bool testKeyDown;
-	bool testFlag;
+	int windowWidth, windowHeight;
 
 public:
 

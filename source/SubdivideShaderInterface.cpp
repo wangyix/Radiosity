@@ -70,19 +70,6 @@ void SubdivideShaderInterface::init() {
 							GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7};
 	glDrawBuffers(8, drawBuffers);
 
-	/*
-	// check framebuffer is ok
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "ERROR: could not create susi fbo \
-						(failed to return GL_FRAMEBUFFER_COMPLETE)");
-		printf("Press enter to exit...");
-		getchar();
-		exit(EXIT_FAILURE);
-	}*/
-
-	// unbind framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	Utils::exitOnGLError("ERROR: coud not set up susi fbo");
 
 	
@@ -122,13 +109,11 @@ void SubdivideShaderInterface::draw(GLuint radTexBL, GLuint resTexBL,
 									int texWidth, int texHeight) {
 
 	// set framebuffer, viewport
-	GLint vp[4];
-	glGetIntegerv(GL_VIEWPORT, vp);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, texWidth, texHeight);
-
 	// disable depth test and depth writes
 	glDisable(GL_DEPTH_TEST);
+
 
 	// attach rad and res textures of quadrants as color attachments to fbo
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, radTexBL, 0);
@@ -139,27 +124,25 @@ void SubdivideShaderInterface::draw(GLuint radTexBL, GLuint resTexBL,
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, resTexTL, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, radTexTR, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, resTexTR, 0);
+
+	/*
+	// check framebuffer is ok
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		fprintf(stderr, "ERROR: could not create susi fbo \
+						(failed to return GL_FRAMEBUFFER_COMPLETE)\n");
+		printf("Press enter to exit...");
+		getchar();
+		exit(EXIT_FAILURE);
+	}*/
 	
+
 	// draw
-
 	glUseProgram(shaderProgram);
-
 	glBindVertexArray(vao);
-
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
 
-	// unbind framebuffer, restore original viewport
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, vp[2], vp[3]);
-
-	// re-enable depth test and depth writes
-	glEnable(GL_DEPTH_TEST);
-
-
-
 	// rebuild mipmaps of textures we rendered to
-	// TODO mipmap generation for a quadrant may not be necessary if further subdivision is required
 	
 	glBindTexture(GL_TEXTURE_2D, radTexBL);
 	glGenerateMipmap(GL_TEXTURE_2D);

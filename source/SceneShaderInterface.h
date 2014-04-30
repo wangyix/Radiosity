@@ -35,6 +35,6 @@ public:
 
 	void setModelViewProj(const glm::mat4 &modelViewProj);
 	void setTexture(GLuint texture);
-	void draw(int baseVertex);
+	void draw(int baseVertex, int windowWidth, int windowHeight);
 	void close();
 };
