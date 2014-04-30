@@ -177,12 +177,12 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 				rsi.draw(receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
 						Quad::getTexWidth(), Quad::getTexHeight());
 
-				if (receiverIndex==19) {
-					receiver->printRadTex();
-					receiver->printResTex();
-					receiver->printNextRadTex();
-					receiver->printNextResTex();
-				}
+	/*if (receiverIndex==19) {
+		receiver->printRadTex();
+		receiver->printResTex();
+		receiver->printNextRadTex();
+		receiver->printNextResTex();
+	}*/
 
 				bool subdivide;
 				

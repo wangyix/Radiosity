@@ -145,7 +145,7 @@ void Quad::setupCurrentTexture(float *initialPixels) {
 	// create texture with mipmaps
 	
 	// immutable storage!!!
-	glTexStorage2D(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL+1, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT);
+	glTexStorage2D(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL+1, GL_RGB32F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, RAD_TEX_WIDTH, RAD_TEX_HEIGHT, GL_RGB, GL_FLOAT, initialPixels);
 
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
