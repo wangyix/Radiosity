@@ -101,14 +101,33 @@ void VisibilityShaderInterface::init(int numVertices, const float *positions, co
 	// check framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		fprintf(stderr, "ERROR: could not create vsi fbo \
-						(failed to return GL_FRAMEBUFFER_COMPLETE)\n");
+						(failed to return GL_FRAMEBUFFER_COMPLETE)");
 		printf("Press enter to exit...");
 		getchar();
 		exit(EXIT_FAILURE);
 	}
+
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	Utils::exitOnGLError("ERROR: coud not set up vsi fbo");
 }
+
+/*
+void VisibilityShaderInterface::setVertices(int numVertices, const float *positions,
+		const unsigned int *ids) {
+
+	this->numVertices = numVertices;
+
+	// update vbos
+	
+	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, idVbo);
+	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(unsigned int), ids, GL_STATIC_DRAW);
+}
+*/
 
 
 
@@ -133,10 +152,11 @@ void VisibilityShaderInterface::setModelView(const glm::mat4 &modelView) {
 void VisibilityShaderInterface::draw() {
 	
 	// set framebuffer, viewport
+	GLint vp[4];
+	glGetIntegerv(GL_VIEWPORT, vp);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, VIS_BUFFER_WIDTH, VIS_BUFFER_HEIGHT);
-	// enable depth test and depth writes
-	glEnable(GL_DEPTH_TEST);
+
 	
 	// clear color attachment 0 and depth of framebuffer
 	GLint clearColor[] = {0, 0, 0, 0};
@@ -146,11 +166,18 @@ void VisibilityShaderInterface::draw() {
 
 
 	// draw patch IDs
+
 	glUseProgram(shaderProgram);
+
 	glBindVertexArray(vao);
+
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawArrays(GL_PATCHES, 0, numVertices);
 
+	
+	// unbind framebuffer, restore original viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, vp[2], vp[3]);
 	
 	
 	/*

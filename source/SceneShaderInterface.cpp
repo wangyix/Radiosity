@@ -117,17 +117,14 @@ void SceneShaderInterface::setTexture(GLuint texture) {
 
 
 
-void SceneShaderInterface::draw(int baseVertex, int windowWidth, int windowHeight) {
+void SceneShaderInterface::draw(int baseVertex) {
 
-	// unbind any framebuffers, set viewport
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, windowWidth, windowHeight);
-	// enable depth test and depth writes
-	glEnable(GL_DEPTH_TEST);
-
-	// draw
 	glUseProgram(shaderProgram);
+
 	glBindVertexArray(vao);
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
+
 	glDrawElementsBaseVertex(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL, baseVertex);
 }
 

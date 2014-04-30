@@ -82,6 +82,19 @@ void ReconstructShaderInterface::init(int numVertices, const float *positions, c
 	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 	glDrawBuffers(2, drawBuffers);
 
+	/*
+	// check framebuffer is ok
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		fprintf(stderr, "ERROR: could not create rsi fbo \
+						(failed to return GL_FRAMEBUFFER_COMPLETE)");
+		printf("Press enter to exit...");
+		getchar();
+		exit(EXIT_FAILURE);
+	}*/
+
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	Utils::exitOnGLError("ERROR: coud not set up rsi fbo");
 
 
@@ -159,8 +172,11 @@ void ReconstructShaderInterface::draw(GLuint nextRadTex, GLuint nextResTex,
 		int texWidth, int texHeight) {
 
 	// set framebuffer, viewport
+	GLint vp[4];
+	glGetIntegerv(GL_VIEWPORT, vp);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, texWidth, texHeight);
+
 	// disable depth test and depth writes
 	glDisable(GL_DEPTH_TEST);
 
@@ -168,26 +184,46 @@ void ReconstructShaderInterface::draw(GLuint nextRadTex, GLuint nextResTex,
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, nextRadTex, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, nextResTex, 0);
 
-	/*
-	// check framebuffer is ok
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "ERROR: could not create rsi fbo \
-						(failed to return GL_FRAMEBUFFER_COMPLETE)");
-		printf("Press enter to exit...");
-		getchar();
-		exit(EXIT_FAILURE);
-	}*/
-
 	// draw
+
 	glUseProgram(shaderProgram);
+
 	glBindVertexArray(vao);
+
 	glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, 0);
 
+	// unbind framebuffer, restore original viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, vp[2], vp[3]);
+
+	// re-enable depth test and depth writes
+	glEnable(GL_DEPTH_TEST);
+
+
+
 	// rebuild mipmaps of textures we rendered to
+
 	glBindTexture(GL_TEXTURE_2D, nextRadTex);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D);					// getting stuck here???
+
 	glBindTexture(GL_TEXTURE_2D, nextResTex);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D);					// getting stuck here....
+
+	/*
+	// TEST!!! read back new residual texture
+	printf("\n\n\n\n");
+	glBindTexture(GL_TEXTURE_2D, nextResTex);
+	float *irr = new float [3*texWidth*texHeight];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
+	for (int i=0; i<texHeight; i++) {
+		for (int j=0; j<texWidth; j++) {
+			int base = 3*(i*texWidth+j);
+			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
+		}
+		printf("\n");
+	}
+	delete[] irr;
+	*/
 }
 
 
