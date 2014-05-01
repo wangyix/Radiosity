@@ -268,7 +268,7 @@ void Scene::render() {
 				//printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
 						//receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
 
-				subdivide = pixelsDiscarded > 2*Quad::getTexWidth();
+				subdivide = pixelsDiscarded > 0;//2*Quad::getTexWidth();
 				
 
 
