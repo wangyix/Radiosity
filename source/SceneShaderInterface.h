@@ -23,6 +23,9 @@ private:
 
 	// texture sampler object
 	GLuint nearestClampToEdgeSampler;
+	GLuint trilinearClampToEdgeSampler;
+
+	GLuint currentSampler;
 
 public:
 	SceneShaderInterface();
@@ -38,4 +41,7 @@ public:
 	void setTexture(GLuint texture);
 	void draw(int baseVertex);
 	void close();
+
+
+	void toggleSampler();
 };

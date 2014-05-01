@@ -6,7 +6,7 @@ SceneShaderInterface::SceneShaderInterface()
 	numVertices(0), numIndices(0),
 	vao(0), positionVbo(0), texcoordVbo(0), indexVbo(0),
 	modelViewProj(-1), tex(-1),
-	nearestClampToEdgeSampler(0) {
+	nearestClampToEdgeSampler(0), trilinearClampToEdgeSampler(0) {
 }
 
 
@@ -71,7 +71,15 @@ void SceneShaderInterface::init(int numVertices, const float *positions, const f
 	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+	glGenSamplers(1, &trilinearClampToEdgeSampler);
+	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	Utils::exitOnGLError("ERROR: coud not set up ssi sampler object");
+
+	currentSampler = nearestClampToEdgeSampler;
 }
 
 
@@ -121,13 +129,22 @@ void SceneShaderInterface::preDraw(int windowWidth, int windowHeight) {
 }
 
 
+void SceneShaderInterface::toggleSampler() {
+	if (currentSampler==nearestClampToEdgeSampler)
+		currentSampler = trilinearClampToEdgeSampler;
+	else
+		currentSampler = nearestClampToEdgeSampler;
+}
+
+
+
 void SceneShaderInterface::setTexture(GLuint texture) {
 
 	//glUseProgram(shaderProgram);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glBindSampler(0, nearestClampToEdgeSampler);
+	glBindSampler(0, currentSampler);
 }
 
 

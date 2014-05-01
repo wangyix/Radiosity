@@ -14,9 +14,9 @@
 
 #define SCENE_FILE "./scenefiles/cornell_box_notess.txt"
 
-#define SHOOTER_LEVEL 0
-#define GRADIENT_THRESHOLD 0.5f
-#define MAX_SUBDIVIDE_LEVEL 1
+#define SHOOTER_LEVEL 2
+#define GRADIENT_THRESHOLD 0.15f		// pixel is dropped if change in slope is greater than this
+#define MAX_SUBDIVIDE_LEVEL 3
 
 #define CAMERA_MOVE_SPEED 3.0f		// dist per sec
 #define CAMERA_ROTATE_SPEED 0.2f	// deg per pixel
@@ -35,6 +35,8 @@ private:
 	Camera camera;
 
 	int windowWidth, windowHeight;
+
+	bool fKeyDown;
 
 public:
 

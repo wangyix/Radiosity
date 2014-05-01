@@ -2,7 +2,8 @@
 
 Scene::Scene()
 	: vsi(), rsi(), gsi(), susi(), ssi(), quadMesh(),
-	windowWidth(0), windowHeight(0) {
+	windowWidth(0), windowHeight(0),
+	fKeyDown(false) {
 }
 
 int Scene::init() {
@@ -84,7 +85,18 @@ void Scene::update(GLFWwindow *window, double delta) {
 		camera.rotateUp(-CAMERA_ROTATE_SPEED*dy);
 	}
 	prevX = x;
-	prevY = y;	
+	prevY = y;
+
+
+	// test key
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+		fKeyDown = true;
+	} else {
+		// toggle ssi sampler on key release
+		if (fKeyDown)
+			ssi.toggleSampler();
+		fKeyDown = false;
+	}
 }
 
 
@@ -177,18 +189,12 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 				rsi.draw(receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
 						Quad::getTexWidth(), Quad::getTexHeight());
 
-	/*if (receiverIndex==19) {
-		receiver->printRadTex();
-		receiver->printResTex();
-		receiver->printNextRadTex();
-		receiver->printNextResTex();
-	}*/
 
 				bool subdivide;
 				
 				// TODO: add code to determine if this quad needs to be subdivided
 				// run gradient shader on receiver's next rad tex
-				/*
+				
 				gsi.setTexture(receiver->getNextRadiosityTex());
 				int pixelsDiscarded = gsi.draw(Quad::getTexWidth(), Quad::getTexHeight());
 
@@ -196,9 +202,7 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 						receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
 
 				subdivide = pixelsDiscarded > 2*Quad::getTexWidth();
-				*/
-
-	subdivide = shootIteration==1;
+				
 
 
 				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {

@@ -15,25 +15,21 @@ void main(void) {
 	vec2 right = vec2(_radTexelSize.s, 0.0);
 	vec2 up = vec2(0.0, _radTexelSize.t);
 
-	vec3 c = texture2D(_radTex, vTexcoord).xyz;
-
-if (c.x >= 1.0)
-	discard;
-
-	vec3 l = texture2D(_radTex, vTexcoord-right).xyz;
-	vec3 r = texture2D(_radTex, vTexcoord+right).xyz;
-	vec3 b = texture2D(_radTex, vTexcoord-up).xyz;
-	vec3 t = texture2D(_radTex, vTexcoord+up).xyz;
+	vec3 c = clamp(texture2D(_radTex, vTexcoord).xyz, 0.0, 1.0);
+	vec3 l = clamp(texture2D(_radTex, vTexcoord-right).xyz, 0.0, 1.0);
+	vec3 r = clamp(texture2D(_radTex, vTexcoord+right).xyz, 0.0, 1.0);
+	vec3 b = clamp(texture2D(_radTex, vTexcoord-up).xyz, 0.0, 1.0);
+	vec3 t = clamp(texture2D(_radTex, vTexcoord+up).xyz, 0.0, 1.0);
 	
 	// find horizontal gradient change
-	float hChange = length((c-l)-(r-c));
-	if (hChange > _threshold) {
+	vec3 hChange = abs((c-l)-(r-c));
+	if (hChange.x > _threshold || hChange.y > _threshold || hChange.z > _threshold) {
 		discard;
 	}	
 
 	// find vertical gradient change
-	float vChange = length((c-b)-(t-c));
-	if (vChange > _threshold) {
+	vec3 vChange = abs((c-b)-(t-c));
+	if (vChange.x > _threshold || vChange.y > _threshold || vChange.z > _threshold) {
 		discard;
 	}
 
