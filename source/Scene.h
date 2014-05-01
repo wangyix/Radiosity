@@ -36,13 +36,17 @@ private:
 
 	int windowWidth, windowHeight;
 
-	bool fKeyDown;
+
+	bool wireframe;
+
+	bool started;
+	bool converged;
 
 public:
 
 	Scene();
 
-	int init();
+	void init();
 
 	void onResize(int w, int h);
 
@@ -50,4 +54,8 @@ public:
 	void render();
 
 	void close();
+
+private:
+
+	void enableWireframeMode(bool en);
 };

@@ -36,21 +36,6 @@ void init( void )
 	
 	fprintf(stdout, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-
-	glClearColor( 0.0, 0.0f, 0.0f, 0.0f );
-
-	//glEnable(GL_DEPTH_TEST);	// handled by shader interfaces
-	glDepthFunc(GL_LESS);
-	Utils::exitOnGLError("ERROR: could not set depth testing options");
-
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-	Utils::exitOnGLError("ERROR: could not set culling options");
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	// TEST!! wireframe
-
-
 	scene.init();
 }
 
@@ -76,11 +61,8 @@ void update(GLFWwindow* window, double delta) {
 
 void display(void)
 {
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
 	scene.render();
 
-	glFlush();
 	frameCount++;
 }
 

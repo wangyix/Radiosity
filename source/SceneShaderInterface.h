@@ -13,6 +13,7 @@ private:
 	
 	GLint modelViewProj;
 	GLint tex;
+	GLint allWhite;
 
 	int numVertices;
 	int numIndices;
@@ -36,6 +37,7 @@ public:
 	void setVertices(int numVertices, const float *positions, const float *texcoords,
 		int numIndices, const unsigned short *indices);
 
+	void setAllWhite(bool allWhite);
 	void setModelViewProj(const glm::mat4 &modelViewProj);
 	void preDraw(int windowWidth, int windowHeight);
 	void setTexture(GLuint texture);

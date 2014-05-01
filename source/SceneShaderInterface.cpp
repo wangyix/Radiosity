@@ -28,6 +28,7 @@ void SceneShaderInterface::init(int numVertices, const float *positions, const f
 	// get uniform locations
 	modelViewProj = glGetUniformLocation(shaderProgram, "_modelViewProj");
 	tex = glGetUniformLocation(shaderProgram, "_tex");
+	allWhite = glGetUniformLocation(shaderProgram, "_allWhite");
 
 	// assign texture units to tex uniforms
 	glUseProgram(shaderProgram);
@@ -104,6 +105,14 @@ void SceneShaderInterface::setVertices(int numVertices, const float *positions,c
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
 }
 
+
+void SceneShaderInterface::setAllWhite(bool allWhite) {
+
+	glUseProgram(shaderProgram);
+
+	GLint intValue = allWhite ? 1 : 0;
+	glUniform1i(this->allWhite, intValue);
+}
 
 void SceneShaderInterface::setModelViewProj(const glm::mat4 &modelViewProj) {
 

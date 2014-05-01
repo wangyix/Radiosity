@@ -1,15 +1,20 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: vsi(), rsi(), gsi(), susi(), ssi(), quadMesh(),
+	: vsi(), rsi(), gsi(), susi(), ssi(),
+	quadMesh(), camera(),
 	windowWidth(0), windowHeight(0),
-	fKeyDown(false) {
+	wireframe(false), started(false), converged(false) {
 }
 
-int Scene::init() {
-
+void Scene::init() {
+	
+	// load scene mesh
 	quadMesh.load(SCENE_FILE);
 	
+
+	// initialize shader interfaces
+
 	ssi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 			quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
 		
@@ -27,12 +32,42 @@ int Scene::init() {
 	gsi.setThresholdAndRadTexelSize(GRADIENT_THRESHOLD,
 			1.0f/(float)Quad::getTexWidth(), 1.0f/(float)Quad::getTexHeight());
 
+
+	// gl init
+
+	glClearColor( 0.0, 0.0f, 0.0f, 0.0f );
+
+	//glEnable(GL_DEPTH_TEST);	// handled by shader interfaces
+	glDepthFunc(GL_LESS);
+	Utils::exitOnGLError("ERROR: could not set depth testing options");
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+	Utils::exitOnGLError("ERROR: could not set culling options");
+
+	// wireframe mode is initially enabled
+	enableWireframeMode(true);
+
+	// set camera to initial position
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
 	camera.lookAt(glm::vec3(0.0f, 0.0f, 1.0f));
-
-	return 0;
 }
+
+
+void Scene::enableWireframeMode(bool en) {
+	if (!wireframe && en) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		wireframe = true;
+		ssi.setAllWhite(true);
+	} else if (wireframe && !en) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		wireframe = false;
+		ssi.setAllWhite(false);
+	}
+}
+
 
 
 void Scene::onResize(int w, int h) {
@@ -88,27 +123,60 @@ void Scene::update(GLFWwindow *window, double delta) {
 	prevY = y;
 
 
-	// test key
+	// F key: toggles wireframe mode
+	static bool fKeyDown = false;
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
 		fKeyDown = true;
 	} else {
-		// toggle ssi sampler on key release
-		if (fKeyDown)
-			ssi.toggleSampler();
+		// on key release
+		if (fKeyDown) {
+			if (!started || converged) {	// cannot toggle during radiosity calculations
+				enableWireframeMode(!wireframe);
+			}
+		}	
 		fKeyDown = false;
+	}
+
+	// ENTER key: starts radiosity calculations
+	static bool enterKeyDown = false;
+	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+		enterKeyDown = true;
+	} else {
+		// on key release
+		if (enterKeyDown) {
+			if (!started) {
+				started = true;
+				enableWireframeMode(false);
+			}
+		}
+		enterKeyDown = false;
+	}
+
+	// G key: toggles ssi sampler
+	static bool gKeyDown = false;
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+		gKeyDown = true;
+	} else {
+		// on key release
+		if (gKeyDown)
+			ssi.toggleSampler();
+		gKeyDown = false;
 	}
 }
 
 
+
+
 void Scene::render() {
 
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+
+
 	static int shootIteration = 0;
-	static bool converged = false;
-
-
 	bool meshChanged = false;
 
-	if (!converged) {
+	if (started && !converged) {
 
 		int shooterIndex;
 
@@ -128,7 +196,6 @@ void Scene::render() {
 
 		// stop shooting if max residual power is low enough
 		if (maxResPowerMag < 0.5f)	{
-printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 			converged = true;
 		}
 
@@ -198,8 +265,8 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 				gsi.setTexture(receiver->getNextRadiosityTex());
 				int pixelsDiscarded = gsi.draw(Quad::getTexWidth(), Quad::getTexHeight());
 
-				printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
-						receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
+				//printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
+						//receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
 
 				subdivide = pixelsDiscarded > 2*Quad::getTexWidth();
 				
@@ -282,20 +349,23 @@ printf("final mesh has %d quads\n", quadMesh.getNumQuads());
 		ssi.draw(quadMesh.getBaseVertex(i));
 	
 	}
+
+
+
+
+	glFlush();
 }
+
+
 
 
 
 void Scene::close() {
 	
 	ssi.close();
-
 	vsi.close();
-
 	rsi.close();
-
 	susi.close();
-
 	gsi.close();
 
 	quadMesh.unload();
