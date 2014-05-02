@@ -14,8 +14,9 @@
 
 #define SCENE_FILE "./scenefiles/cornell_box_notess.txt"
 
+#define CONVERGE_RES_THRESHOLD 0.7f	// shoot-iterations stop when all avg residual power is less than this value
 #define SHOOTER_LEVEL 2
-#define GRADIENT_THRESHOLD 0.3f		// pixel is dropped if change in slope is greater than this
+#define GRADIENT_THRESHOLD 0.35f		// pixel is dropped if change in slope is greater than this
 #define MAX_SUBDIVIDE_LEVEL 4
 
 #define CAMERA_MOVE_SPEED 3.0f		// dist per sec

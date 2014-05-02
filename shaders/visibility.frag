@@ -4,7 +4,7 @@
 in uint teQuadId;
 
 //layout(location=0) out vec4 fColor;	// FOR TESTING!!!!!!!
-layout(location=0) out uvec4 fId;	// write to render target 1 for now
+layout(location=0) out uvec4 fId;
 
 void main(void) {
 	

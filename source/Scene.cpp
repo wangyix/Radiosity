@@ -195,7 +195,7 @@ void Scene::render() {
 	
 
 		// stop shooting if max residual power is low enough
-		if (maxResPowerMag < 0.5f)	{
+		if (maxResPowerMag < CONVERGE_RES_THRESHOLD)	{
 			converged = true;
 		}
 
