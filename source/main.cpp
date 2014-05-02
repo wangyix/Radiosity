@@ -34,7 +34,7 @@ void init(char *sceneFilepath)
 		exit(EXIT_FAILURE);
 	}
 	
-	fprintf(stdout, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
+	fprintf(stdout, "INFO: OpenGL Version: %s\n\n", glGetString(GL_VERSION));
 
 	scene.init(sceneFilepath);
 }

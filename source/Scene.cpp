@@ -144,7 +144,8 @@ void Scene::update(GLFWwindow *window, double delta) {
 	} else {
 		// on key release
 		if (enterKeyDown) {
-			if (!started) {
+			if (!started && !converged) {
+				printf("\nSTARTING radiosity calculations! -------------------------\n");
 				started = true;
 				enableWireframeMode(false);
 			}
@@ -162,6 +163,14 @@ void Scene::update(GLFWwindow *window, double delta) {
 			ssi.toggleSampler();
 		gKeyDown = false;
 	}
+
+	// X key: hold to stop radiosity shoot iterations
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+		if (started && !converged) {
+			printf("\nSTOPPING radiosity calculations! -------------------------\n");
+			started = false;
+		}
+	}
 }
 
 
@@ -174,6 +183,8 @@ void Scene::render() {
 
 
 	static int shootIteration = 0;
+	static int noDivideIterations = 0;
+
 	bool meshChanged = false;
 
 	if (started && !converged) {
@@ -181,40 +192,50 @@ void Scene::render() {
 		int shooterIndex;
 
 		// set shooter as quad with largest residual power
-		float maxResPowerMag = -1.0f;
+		float maxResAvgIrradMag = -1.0f;
 		for (int i=0; i<quadMesh.getNumQuads(); i++) {
 		
-			glm::vec3 resPower = quadMesh.getQuad(i)->getResidualPower();
-			float resPowerMag = glm::length(resPower);
+			glm::vec3 resAvgIrrad = quadMesh.getQuad(i)->getResidualAvgIrradiance();
+			float resAvgIrradMag = glm::length(resAvgIrrad);
 		
-			if (resPowerMag > maxResPowerMag) {
-				maxResPowerMag = resPowerMag;
+			if (resAvgIrradMag > maxResAvgIrradMag) {
+				maxResAvgIrradMag = resAvgIrradMag;
 				shooterIndex = i;
 			}
 		}
 	
 
 		// stop shooting if max residual power is low enough
-		if (maxResPowerMag < CONVERGE_RES_THRESHOLD)	{
+		if (maxResAvgIrradMag < CONVERGE_RES_THRESHOLD)	{
 			converged = true;
 		}
 
 
 		Quad* shooter = quadMesh.getQuad(shooterIndex);
 
-		printf("\n\nshooter quad is id=%d (level=%d), powerMag = %f\n", shooter->getId(), shooter->getSubdivideLevel(), maxResPowerMag);
+		printf("\n\nshooter quad is id=%d (level=%d), resIrradMag = %f\n", shooter->getId(), shooter->getSubdivideLevel(), maxResAvgIrradMag);
 
 
+		// calculate the desired shooter grid dimension N (there will be NxN grid of shooter cells for this quad)
+		float shootersGridDimension = SHOOTERS_PER_UNIT_DIST *
+				std::max(glm::length(shooter->getU()), glm::length(shooter->getV()));
+		
+		// calculate shooter level for this shooter (level = log2(N));
+		int c = *(const int *)&shootersGridDimension;
+		int shooterLevel = (c >> 23) - 127;
+		if (c & 0x007FFFFF)
+			shooterLevel++;
 
-		// shoot residual irradiance from each shooter cell of this shooter	
+		printf("caculated shooter level = %d\n", shooterLevel);
 
-		shooter->selectAsShooter(SHOOTER_LEVEL);
+		// select this quad as the shooter, retrieve appropriate mipmap of restex according to shooter level
+		shooter->selectAsShooter(shooterLevel);
 		glm::mat4 shooterCellView;
 		glm::vec3 shooterCellPower;
 
 		while (shooter->hasNextShooterCell()) {
 
-			printf("\n	shooter row, col = (%d, %d)\n", shooter->getCurrentShooterRow(), shooter->getCurrentShooterCol());
+			printf("	shooter row, col = (%d, %d)\n", shooter->getCurrentShooterRow(), shooter->getCurrentShooterCol());
 			
 			shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
 
@@ -257,20 +278,27 @@ void Scene::render() {
 						Quad::getTexWidth(), Quad::getTexHeight());
 
 
+				// determine if this quad needs to be subdivided
+
 				bool subdivide;
-				
-				// TODO: add code to determine if this quad needs to be subdivided
-				// run gradient shader on receiver's next rad tex
-				
-				gsi.setTexture(receiver->getNextRadiosityTex());
-				int pixelsDiscarded = gsi.draw(Quad::getTexWidth(), Quad::getTexHeight());
+				if (noDivideIterations <= NO_DIVIDE_ITER_THRESHOLD) {
+					
+					// run gradient shader on receiver's next rad tex
+					gsi.setTexture(receiver->getNextRadiosityTex());
+					int pixelsDiscarded = gsi.draw(Quad::getTexWidth(), Quad::getTexHeight());
 
-				//printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
-						//receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
+					//printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
+							//receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
 
-				subdivide = pixelsDiscarded > 0;//2*Quad::getTexWidth();
+					subdivide = pixelsDiscarded > 0;//2*Quad::getTexWidth();
+				
+				} else {
+					subdivide = false;
+				}
 				
 
+
+				// subdivide this quad if necessary
 
 				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
 
@@ -281,7 +309,6 @@ void Scene::render() {
 				} else {
 					
 					printf("			subdividing quad id=%d (level=%d)\n", receiver->getId(), receiver->getSubdivideLevel());
-
 					
 					// subdivide this receiver quad in the mesh
 					Quad *subQuads[4];
@@ -327,7 +354,13 @@ void Scene::render() {
 		shooter->clearResidualTex();
 
 		printf("done with shoot iteration %d\n", shootIteration);
+		
 		shootIteration++;
+
+		if (meshChanged)
+			noDivideIterations = 0;
+		else
+			noDivideIterations++;
 
 	}	// end if (!converged)
 
@@ -339,7 +372,7 @@ void Scene::render() {
 	if (meshChanged) {
 		ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
 				quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
-		meshChanged = false;
+		
 	}
 	ssi.preDraw(windowWidth, windowHeight);
 	ssi.setModelViewProj(camera.getViewProj());

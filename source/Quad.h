@@ -69,7 +69,7 @@ public:
 	void close();
 
 
-	glm::vec3 getResidualPower() const;
+	glm::vec3 getResidualAvgIrradiance() const;
 
 	void selectAsShooter(int shooterDensity);
 

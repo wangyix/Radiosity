@@ -12,15 +12,20 @@
 #include <stdio.h>
 
 
-#define DEFAULT_SCENE_FILE "./scenefiles/cornell_box_notess.txt"
+#define DEFAULT_SCENE_FILE "./scenefiles/cornell_box.txt"
 
-#define CONVERGE_RES_THRESHOLD 0.7f	// shoot-iterations stop when all avg residual power is less than this value
-#define SHOOTER_LEVEL 2
-#define GRADIENT_THRESHOLD 0.35f		// pixel is dropped if change in slope is greater than this
-#define MAX_SUBDIVIDE_LEVEL 4
+#define CONVERGE_RES_THRESHOLD 0.7f		// shoot-iterations stop when max avg residual irradiance magnitude is less than this value
+#define NO_DIVIDE_ITER_THRESHOLD 8		// if this many shoot iterations occur with no subdivision, then subdivision checks are disabled
+
+#define SHOOTERS_PER_UNIT_DIST 8.0f		// a target shooter cell density for shooter quads
+#define MAX_SUBDIVIDE_LEVEL 3			// maximum depth of any texture quadtree resulting from subdivision
+
+#define GRADIENT_THRESHOLD 0.35f		// pixel is dropped in gradient shader if change in slope is greater than this
+
 
 #define CAMERA_MOVE_SPEED 3.0f		// dist per sec
 #define CAMERA_ROTATE_SPEED 0.2f	// deg per pixel
+
 
 class Scene {
 private:

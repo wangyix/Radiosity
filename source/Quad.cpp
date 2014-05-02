@@ -172,7 +172,7 @@ void Quad::close() {
 }
 
 
-glm::vec3 Quad::getResidualPower() const {
+glm::vec3 Quad::getResidualAvgIrradiance() const {
 	
 	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
 
@@ -180,7 +180,7 @@ glm::vec3 Quad::getResidualPower() const {
 	glGetTexImage(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL, GL_RGB, GL_FLOAT, 
 			glm::value_ptr(residualAvgIrradiance));
 	
-	return residualAvgIrradiance * (glm::length(u)*glm::length(v));
+	return residualAvgIrradiance;
 }
 
 
@@ -203,7 +203,8 @@ void Quad::swapTextures() {
 
 void Quad::selectAsShooter(int shooterDensity) {
 	
-	int shooterLevel = RAD_TEX_TOPMIPLEVEL - shooterDensity;
+	shooterDensity = std::max(shooterDensity, 0);
+	int shooterLevel = std::max(RAD_TEX_TOPMIPLEVEL-shooterDensity, 0);
 	shooterRows = RAD_TEX_WIDTH >> shooterLevel;
 	shooterCols = RAD_TEX_HEIGHT >> shooterLevel;
 
