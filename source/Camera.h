@@ -18,6 +18,7 @@ private:
 
 public:
 	Camera();
+	~Camera();
 
 	void setPosition(const glm::vec3 &position);
 

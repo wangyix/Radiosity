@@ -1,78 +1,114 @@
 #include "Scene.h"
 
 Scene::Scene()
-	: vsi(), rsi(), gsi(), susi(), ssi(),
-	quadMesh(), camera(),
-	windowWidth(0), windowHeight(0),
-	wireframe(false), started(false), converged(false) {
+	: ssi(0), vsi(0), quads(0){
 }
 
-void Scene::init() {
+int Scene::init() {
 	
-	// load scene mesh
-	quadMesh.load(SCENE_FILE);
-	
+	if (!quads) {
 
-	// initialize shader interfaces
-
-	ssi.init(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
-			quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
+		// TEST!!!!
+		quads = new Quad[96];
+		numQuads = 0;
 		
-	vsi.init(quadMesh.getNumVertices(),
-			quadMesh.getPositionsArray(), quadMesh.getIdsArray());
-	vsi.setNearFar(0.0001f, 1000.0f);	// do not set near to 0: shooter may render itself in front of everything
-	
-	rsi.init(Quad::numVertices, Quad::positionsModel, Quad::texcoords, Quad::numIndices, Quad::indices);
-	rsi.setVisTexelSize(1.0f/(float)VisibilityShaderInterface::getVisTextureWidth(),
-			1.0f/(float)VisibilityShaderInterface::getVisTextureHeight());
+		// cube A
+		glm::vec3 cubeCorners[12];
+		cubeCorners[0] = glm::vec3(-1.5f, -0.8f, 0.0f);
+		cubeCorners[1] = glm::vec3(-0.5f, -0.8f, 0.0f);
+		cubeCorners[2] = glm::vec3(-0.5f, 0.2f, 0.0f);
+		cubeCorners[3] = glm::vec3(-1.5f, 0.2f, 0.0f);
+		cubeCorners[4] = glm::vec3(-1.5f, -0.8f, 1.0f);
+		cubeCorners[5] = glm::vec3(-0.5f, -0.8f, 1.0f);
+		cubeCorners[6] = glm::vec3(-0.5f, 0.2f, 1.0f);
+		cubeCorners[7] = glm::vec3(-1.5f, 0.2f, 1.0f);
 
-	susi.init();
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
+		quads[numQuads++].setModel(cubeCorners[4], cubeCorners[5], cubeCorners[7]);
 
-	gsi.init();
-	gsi.setThresholdAndRadTexelSize(GRADIENT_THRESHOLD,
-			1.0f/(float)Quad::getTexWidth(), 1.0f/(float)Quad::getTexHeight());
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
+		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
+		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
+		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
 
 
-	// gl init
+		cubeCorners[0] = glm::vec3(0.8f, 0.0f, 0.0f);
+		cubeCorners[1] = glm::vec3(1.4f, 0.8f, 0.0f);
+		cubeCorners[2] = glm::vec3(0.6f, 1.4f, 0.0f);
+		cubeCorners[3] = glm::vec3(0.0f, 0.6f, 0.0f);
+		cubeCorners[4] = glm::vec3(0.8f, 0.0f, 1.0f);
+		cubeCorners[5] = glm::vec3(1.4f, 0.8f, 1.0f);
+		cubeCorners[6] = glm::vec3(0.6f, 1.4f, 1.0f);
+		cubeCorners[7] = glm::vec3(0.0f, 0.6f, 1.0f);
+		cubeCorners[8] = glm::vec3(0.8f, 0.0f, 2.0f);
+		cubeCorners[9] = glm::vec3(1.4f, 0.8f, 2.0f);
+		cubeCorners[10] = glm::vec3(0.6f, 1.4f, 2.0f);
+		cubeCorners[11] = glm::vec3(0.0f, 0.6f, 2.0f);
 
-	glClearColor( 0.0, 0.0f, 0.0f, 0.0f );
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[3], cubeCorners[1]);
+		quads[numQuads++].setModel(cubeCorners[8], cubeCorners[9], cubeCorners[11]);
+		/*
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[4]);
+		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[5]);
+		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[6]);
+		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[7]);
+		*/
+		quads[numQuads++].setModel(cubeCorners[0], cubeCorners[1], cubeCorners[8]);
+		quads[numQuads++].setModel(cubeCorners[1], cubeCorners[2], cubeCorners[9]);
+		quads[numQuads++].setModel(cubeCorners[2], cubeCorners[3], cubeCorners[10]);
+		quads[numQuads++].setModel(cubeCorners[3], cubeCorners[0], cubeCorners[11]);
 
-	//glEnable(GL_DEPTH_TEST);	// handled by shader interfaces
-	glDepthFunc(GL_LESS);
-	Utils::exitOnGLError("ERROR: could not set depth testing options");
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-	Utils::exitOnGLError("ERROR: could not set culling options");
+		cubeCorners[0] = glm::vec3(-2.0f, -2.0f, 0.0f);
+		cubeCorners[1] = glm::vec3(2.0f, -2.0f, 0.0f);
+		cubeCorners[2] = glm::vec3(2.0f, 2.0f, 0.0f);
+		cubeCorners[3] = glm::vec3(-2.0f, 2.0f, 0.0f);
+		cubeCorners[4] = glm::vec3(-2.0f, -2.0f, 3.0f);
+		cubeCorners[5] = glm::vec3(2.0f, -2.0f, 3.0f);
+		cubeCorners[6] = glm::vec3(2.0f, 2.0f, 3.0f);
+		cubeCorners[7] = glm::vec3(-2.0f, 2.0f, 3.0f);
 
-	// wireframe mode is initially enabled
-	enableWireframeMode(true);
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[0], cubeCorners[1], cubeCorners[3], 1, 1, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[4], cubeCorners[7], cubeCorners[5], 1, 1, glm::vec3(0.0f,1.0f,0.0f));
 
-	// set camera to initial position
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[0], cubeCorners[4], cubeCorners[1], 1, 1, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[1], cubeCorners[5], cubeCorners[2], 1, 1, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[2], cubeCorners[6], cubeCorners[3], 1, 1, glm::vec3(0.0f,1.0f,0.0f));
+		numQuads += Quad::tessellate(&quads[numQuads], cubeCorners[3], cubeCorners[7], cubeCorners[0], 1, 1, glm::vec3(0.0f,1.0f,0.0f));
+
+
+
+
+		quadPositions = new float[4*3*numQuads];
+		quadIds = new unsigned int[4*numQuads];
+
+		Quad::buildWorldVerticesArray(quads, numQuads, quadPositions, quadIds);
+
+	}
+
+	/*
+	if (!ssi) {
+		ssi = new SceneShaderInterface();
+		ssi->init();
+	}*/
+
+	if (!vsi) {
+		vsi = new VisibilityShaderInterface();
+		vsi->init();
+
+		vsi->setNearFar(0.0f, 1000.0f);
+		vsi->setVertices(4*numQuads, quadPositions, quadIds);
+	}
+
 	camera.setLens(0.1f, 1000.0f, 45.0f);
 	camera.setPosition(glm::vec3(0.0f, -5.0f, 1.0f));
 	camera.lookAt(glm::vec3(0.0f, 0.0f, 1.0f));
+
+	return 0;
 }
-
-
-void Scene::enableWireframeMode(bool en) {
-	if (!wireframe && en) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		wireframe = true;
-		ssi.setAllWhite(true);
-	} else if (wireframe && !en) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		wireframe = false;
-		ssi.setAllWhite(false);
-	}
-}
-
 
 
 void Scene::onResize(int w, int h) {
-	windowWidth = w;
-	windowHeight = h;
 	camera.setAspect((float)w / (float)h);
 }
 
@@ -123,250 +159,52 @@ void Scene::update(GLFWwindow *window, double delta) {
 	prevY = y;
 
 
-	// F key: toggles wireframe mode
+	static bool wireframe = true;
 	static bool fKeyDown = false;
+
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
 		fKeyDown = true;
-	} else {
-		// on key release
-		if (fKeyDown) {
-			if (!started || converged) {	// cannot toggle during radiosity calculations
-				enableWireframeMode(!wireframe);
-			}
-		}	
+	} else if(fKeyDown) {
+		if (wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			wireframe = false;
+		} else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			wireframe = true;
+		}
 		fKeyDown = false;
 	}
-
-	// ENTER key: starts radiosity calculations
-	static bool enterKeyDown = false;
-	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
-		enterKeyDown = true;
-	} else {
-		// on key release
-		if (enterKeyDown) {
-			if (!started) {
-				started = true;
-				enableWireframeMode(false);
-			}
-		}
-		enterKeyDown = false;
-	}
-
-	// G key: toggles ssi sampler
-	static bool gKeyDown = false;
-	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-		gKeyDown = true;
-	} else {
-		// on key release
-		if (gKeyDown)
-			ssi.toggleSampler();
-		gKeyDown = false;
-	}
 }
-
-
 
 
 void Scene::render() {
 
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	/*
+	ssi->setVertices(Quad::numVertices, Quad::positions, Quad::texcoords,
+			Quad::numIndices, Quad::indices);
 
+	for (int i=0; i<numQuads; ++i) {
+		ssi->setModelViewProj(camera.getViewProj() * quads[i].getModel());
+		ssi->setTexture(quads[i].getRadiosityTex());
+		ssi->draw();
+	}*/
 
-
-	static int shootIteration = 0;
-	bool meshChanged = false;
-
-	if (started && !converged) {
-
-		int shooterIndex;
-
-		// set shooter as quad with largest residual power
-		float maxResPowerMag = -1.0f;
-		for (int i=0; i<quadMesh.getNumQuads(); i++) {
-		
-			glm::vec3 resPower = quadMesh.getQuad(i)->getResidualPower();
-			float resPowerMag = glm::length(resPower);
-		
-			if (resPowerMag > maxResPowerMag) {
-				maxResPowerMag = resPowerMag;
-				shooterIndex = i;
-			}
-		}
-	
-
-		// stop shooting if max residual power is low enough
-		if (maxResPowerMag < 0.5f)	{
-			converged = true;
-		}
-
-
-		Quad* shooter = quadMesh.getQuad(shooterIndex);
-
-		printf("\n\nshooter quad is id=%d (level=%d), powerMag = %f\n", shooter->getId(), shooter->getSubdivideLevel(), maxResPowerMag);
-
-
-
-		// shoot residual irradiance from each shooter cell of this shooter	
-
-		shooter->selectAsShooter(SHOOTER_LEVEL);
-		glm::mat4 shooterCellView;
-		glm::vec3 shooterCellPower;
-
-		while (shooter->hasNextShooterCell()) {
-
-			printf("\n	shooter row, col = (%d, %d)\n", shooter->getCurrentShooterRow(), shooter->getCurrentShooterCol());
-			
-			shooter->getNextShooterCellUniforms(&shooterCellView, &shooterCellPower);
-
-			// render visibility texture from shooter's perspective
-			vsi.setModelView(shooterCellView);
-			vsi.draw();
-
-
-			// set up shooter uniforms for reconstruction pass
-			rsi.setShooterUniforms(shooterCellPower);
-
-
-			// update each receiving quad's residual
-			// more quads may be appended to quadMesh if subdividing occurs
-			
-			int receiverIndex = 0;
-			while (receiverIndex < quadMesh.getNumQuads()) {
-
-				Quad *receiver = quadMesh.getQuad(receiverIndex);
-				
-				if (receiver == shooter) {
-					receiverIndex++;
-					continue;
-				}
-
-
-				glm::vec4 normalShooterView4 = shooterCellView *
-						glm::vec4(receiver->getN(), 0.0f);
-
-				glm::vec3 normalShooterView = glm::vec3(normalShooterView4.x,
-						normalShooterView4.y, normalShooterView4.z);
-
-				rsi.setReceiverUniforms(shooterCellView * receiver->getModel(),
-						receiver->getParentId(), receiver->getReflectance(),
-						normalShooterView);
-
-				rsi.setTextureUniforms(vsi.getVisTexture(), receiver->getRadiosityTex(), receiver->getResidualTex());
-
-				rsi.draw(receiver->getNextRadiosityTex(), receiver->getNextResidualTex(),
-						Quad::getTexWidth(), Quad::getTexHeight());
-
-
-				bool subdivide;
-				
-				// TODO: add code to determine if this quad needs to be subdivided
-				// run gradient shader on receiver's next rad tex
-				
-				gsi.setTexture(receiver->getNextRadiosityTex());
-				int pixelsDiscarded = gsi.draw(Quad::getTexWidth(), Quad::getTexHeight());
-
-				//printf("		Receiver is patch id=%d (level %d).\t%d pixels discarded\n",
-						//receiver->getId(), receiver->getSubdivideLevel(), pixelsDiscarded);
-
-				subdivide = pixelsDiscarded > 0;//2*Quad::getTexWidth();
-				
-
-
-				if (!subdivide || receiver->getSubdivideLevel() >= MAX_SUBDIVIDE_LEVEL) {
-
-					receiver->swapTextures();
-
-					receiverIndex++;
-				
-				} else {
-					
-					printf("			subdividing quad id=%d (level=%d)\n", receiver->getId(), receiver->getSubdivideLevel());
-
-					
-					// subdivide this receiver quad in the mesh
-					Quad *subQuads[4];
-					quadMesh.subdivideQuad(receiverIndex, &subQuads[0], &subQuads[1], &subQuads[2], &subQuads[3]);
-
-					// NOTE: receiver ptr no longer valid at this point. use subQuads[0]
-					// NOTE: shooter ptr  no longer valid at this point.
-
-
-					//for (int j=0; j<4; j++)
-						//printf("			created child quad id=%d (level=%d)\n", subQuads[j]->getId(), subQuads[j]->getSubdivideLevel());
-
-
-					// Copy rad, res values of original quad into the 4 subdivided quads
-					// using shader. Bilinear filtering is used to calculate new in-between values
-
-					susi.setUniforms(subQuads[0]->getRadiosityTex(), subQuads[0]->getResidualTex());
-
-					susi.draw(	subQuads[0]->getNextRadiosityTex(), subQuads[0]->getNextResidualTex(),
-								subQuads[1]->getNextRadiosityTex(), subQuads[1]->getNextResidualTex(),
-								subQuads[2]->getNextRadiosityTex(), subQuads[2]->getNextResidualTex(),
-								subQuads[3]->getNextRadiosityTex(), subQuads[3]->getNextResidualTex(),
-								Quad::getTexWidth(), Quad::getTexHeight()	);
-
-					for (int j=0; j<4; j++) {	
-						subQuads[j]->swapTextures();
-					}
-
-
-					shooter = quadMesh.getQuad(shooterIndex); // recalculate the shooter pointer
-
-					meshChanged = true;
-
-					// do not increment receiverIndex; the current receiver has been replaced with its bottom-left
-					// quadrant and needs to go thru the reconstruction pass again
-					
-				}
-
-			}	// end receiver loop
-		
-		}	// end shooter-cells loop
-		
-		shooter->clearResidualTex();
-
-		printf("done with shoot iteration %d\n", shootIteration);
-		shootIteration++;
-
-	}	// end if (!converged)
-
-
-
-
-	// render all quads to screen
-	
-	if (meshChanged) {
-		ssi.setVertices(quadMesh.getNumVertices(), quadMesh.getPositionsArray(),
-				quadMesh.getTexcoordsArray(), Quad::numIndices, Quad::indices);
-		meshChanged = false;
-	}
-	ssi.preDraw(windowWidth, windowHeight);
-	ssi.setModelViewProj(camera.getViewProj());
-	for (int i=0; i<quadMesh.getNumQuads(); i++) {
-
-		ssi.setTexture(quadMesh.getQuad(i)->getRadiosityTex());
-		ssi.draw(quadMesh.getBaseVertex(i));
-	
-	}
-
-
-
-
-	glFlush();
+	vsi->setModelView(camera.getView());
+	vsi->draw();
 }
 
-
-
-
-
 void Scene::close() {
-	
-	ssi.close();
-	vsi.close();
-	rsi.close();
-	susi.close();
-	gsi.close();
+	if (ssi) {
+		ssi->close();
+		delete ssi;
+	}
 
-	quadMesh.unload();
+	if (vsi) {
+		vsi->close();
+		delete vsi;
+	}
+
+	if (quads) {
+		delete[] quads;
+	}
 }

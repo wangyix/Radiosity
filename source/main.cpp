@@ -10,7 +10,7 @@
 #define WINDOW_TITLE "Radiosity"
 
 
-Scene scene;
+Scene *scene = 0;
 
 int frameCount = 0;
 int fps = 0;
@@ -36,13 +36,31 @@ void init( void )
 	
 	fprintf(stdout, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-	scene.init();
+
+	scene = new Scene();
+	scene->init();
+
+
+	glClearColor( 0.0, 0.0f, 0.0f, 0.0f );
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	Utils::exitOnGLError("ERROR: could not set depth testing options");
+
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CCW);
+	Utils::exitOnGLError("ERROR: could not set culling options");
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 
 void reshape( GLFWwindow* window, int w, int h )
 {
-	scene.onResize(w, h);
+	glViewport( 0, 0, (GLsizei)w, (GLsizei)h );
+	if (scene)
+		scene->onResize(w, h);
 }
 
 void update(GLFWwindow* window, double delta) {
@@ -55,19 +73,24 @@ void update(GLFWwindow* window, double delta) {
 		elapsed = 0.0;
 		frameCount = 0;
 	}
-	scene.update(window, delta);
+	scene->update(window, delta);
 }
 
 
 void display(void)
 {
-	scene.render();
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+	scene->render();
+
+	glFlush();
 	frameCount++;
 }
 
 void close() {
-	scene.close();
+	scene->close();
+	delete scene;
+	scene = 0;
 }
 
 
@@ -94,7 +117,7 @@ int main( void )
 
 	glfwWindowHint(GLFW_DEPTH_BITS, 16);
 
-	window = glfwCreateWindow( 800, 600, WINDOW_TITLE, NULL, NULL );
+	window = glfwCreateWindow( 800, 800, WINDOW_TITLE, NULL, NULL );
 	if (!window)
 	{
 		glfwTerminate();
@@ -121,8 +144,7 @@ int main( void )
 	double t_old = 0.f;
 	double dt;
 
-	int titleBufferLength = strlen(WINDOW_TITLE)+20;
-	char *windowTitle = new char[titleBufferLength];
+	char *windowTitle = new char[strlen(WINDOW_TITLE)+20];
 
 	for (;;)
 	{
@@ -136,8 +158,7 @@ int main( void )
 		display();
 
 		// update fps counter in window title
-		sprintf_s(windowTitle, titleBufferLength,
-				"%s    FPS: %d", WINDOW_TITLE, fps);
+		sprintf(windowTitle, "%s    FPS: %d", WINDOW_TITLE, fps);
 		glfwSetWindowTitle(window, windowTitle);
 		
 		glfwSwapBuffers(window);

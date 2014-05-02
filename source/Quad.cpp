@@ -1,327 +1,207 @@
 #include "Quad.h"
 
-unsigned int Quad::nextId = 1;
-const float Quad::zeros[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT] = {0.0f};
-
-const float Quad::positionsModel[] = {	0.0f, 0.0f, 0.0f,
-										1.0f, 0.0f, 0.0f,
-										1.0f, 1.0f, 0.0f,
-										0.0f, 1.0f, 0.0f	};
-const float Quad::texcoords[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
 const int Quad::numVertices = 4;
-
-const unsigned short Quad::indices[] = {0,1,2,0,2,3};
 const int Quad::numIndices = 6;
 
+const float Quad::positions[12] =  {	0.0f, 0.0f, 0.0f,
+										1.0f, 0.0f, 0.0f,
+										1.0f, 1.0f, 0.0f,
+										0.0f, 1.0f, 0.0f };
 
+const float Quad::texcoords[8] =  {	0.0, 0.0f,
+									1.0, 0.0f,
+									1.0, 1.0f,
+									0.0, 1.0f };
 
-Quad::Quad() 
-		:  currentRadiosityTex(0), nextRadiosityTex(0),
-		currentResidualTex(0), nextResidualTex(0),
-		shooterRows(0), shooterCols(0),
-		residualShooterIrradiances(),
-		currentShooterRow(0), currentShooterCol(0) {
-
-	id = nextId++;
-	parentId = id;
-}
-
-
-
-
-void Quad::updateNormalAndModel() {
-
-	n = glm::normalize(glm::cross(u, v));
-
-	// update model matrix (glm mat constructor order is tranposed)
-	model = glm::mat4(	u.x,		u.y,		u.z,		0.0f,
-						v.x,		v.y,		v.z,		0.0f,
-						n.x,		n.y,		n.z,		0.0f,
-						position.x,	position.y,	position.z,	1.0f
-					);
-}
-
-void Quad::setProperties(const glm::vec3 &position, const glm::vec3 &u,
-		const glm::vec3 &v, const glm::vec3 &reflectance) {
-
-	this->position = position;
-	this->u = u;
-	this->v = v;
-	this->reflectance = reflectance;
-
-	updateNormalAndModel();
-}
+const unsigned short Quad::indices[6] = {	0, 1, 2,
+											0, 2, 3 };
 
 
 
+Quad::Quad(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
+	glm::vec3 reflectance) {
 
+	setModel(bottomLeft, bottomRight, topLeft);
 
-void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
-		const glm::vec3 &v, const glm::vec3 &reflectance,
-		const glm::vec3 &emittance) {
+	setReflectance(reflectance);
 
-	setProperties(position, u, v, reflectance);
-
-	this->subdivideLevel = 0;
 
 	// initial texture data
 	float *initialPixels = new float[3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
-	
-	int k = 0;
-	for (int i=0; i<RAD_TEX_HEIGHT; ++i) {
-		for (int j=0; j<RAD_TEX_WIDTH; ++j) {
-			initialPixels[k++] = emittance.x;
-			initialPixels[k++] = emittance.y;
-			initialPixels[k++] = emittance.z;
-		}
-	}
-	/*
+	memset(initialPixels, 0, sizeof(initialPixels));
+
+
 	// FOR TESTING!!!!!!!!!!!!
-	static float t = 0.0f;
+	static float t = -0.2f;
+	t += 0.01f;
 	for (int i=0; i<RAD_TEX_HEIGHT; ++i) {
 		for (int j=0; j<RAD_TEX_WIDTH; ++j) {
 			int base = 3 * (i*RAD_TEX_WIDTH + j);
 			if ( (i/4 + j/4)%2==0 ) { 
-				initialPixels[base] = 0.0f;
-				initialPixels[base+1] = 0.0f;
+				initialPixels[base] = 1.0f;
+				initialPixels[base+1] = 1.0f;
 				initialPixels[base+2] = 1.0f;
 			} else {
-				initialPixels[base] = emittance.x;
-				initialPixels[base+1] = emittance.y;
-				initialPixels[base+2] = emittance.z;
+				initialPixels[base] = t;
+				initialPixels[base+1] = 0.0;
+				initialPixels[base+2] = 0.0f;
 			}
 		}
-	}*/
+	}
 
-
-	initTextures(initialPixels);
-
-	delete[] initialPixels;
-}
+	// TODO: create mipmaps for residual textures
 
 
 
-void Quad::init(const glm::vec3 &position, const glm::vec3 &u,
-		const glm::vec3 &v, const glm::vec3 &reflectance,
-		unsigned int parentId, int subdivideLevel) {
-
-	setProperties(position, u, v, reflectance);
-
-	this->parentId = parentId;
-	this->subdivideLevel = subdivideLevel;
-
-	initTextures(0);
-}
-
-
-
-void Quad::initTextures(float *initialPixels) {
-
-	// initialize radiosity and residual texture pairs
-
-	glGenTextures(1, &currentRadiosityTex);
-	glBindTexture(GL_TEXTURE_2D, currentRadiosityTex);
-	setupCurrentTexture(initialPixels);
-
-
-	glGenTextures(1, &nextRadiosityTex);
-	glBindTexture(GL_TEXTURE_2D, nextRadiosityTex);
-	setupCurrentTexture(initialPixels);
-
-
-	glGenTextures(1, &currentResidualTex);
-	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-	setupCurrentTexture(initialPixels);
-
-
-	glGenTextures(1, &nextResidualTex);
-	glBindTexture(GL_TEXTURE_2D, nextResidualTex);
-	setupCurrentTexture(initialPixels);
-}
-
-
-void Quad::setupCurrentTexture(float *initialPixels) {
-
-	// create texture with mipmaps
-	
-	// immutable storage!!!
-	glTexStorage2D(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL+1, GL_RGB32F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, RAD_TEX_WIDTH, RAD_TEX_HEIGHT, GL_RGB, GL_FLOAT, initialPixels);
-
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
-		//0, GL_RGB, GL_FLOAT, initialPixels);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	/*
-	// set texture params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	// allocate texture radiosityTex
+	glGenTextures(1, &radiosityTex);
+	glBindTexture(GL_TEXTURE_2D, radiosityTex);
+	// filtering params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// no mipmaps required
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	*/
+	// wrap params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// create texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+		0, GL_RGB, GL_FLOAT, initialPixels);
+
+
+	// allocate texture residualTex
+	glGenTextures(1, &residualTex);
+	glBindTexture(GL_TEXTURE_2D, residualTex);
+	// filtering params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// no mipmaps required
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// wrap params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// create texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+		0, GL_RGB, GL_FLOAT, initialPixels);
+
+
+	// allocate texture radiosityTexB
+	glGenTextures(1, &radiosityTexB);
+	glBindTexture(GL_TEXTURE_2D, radiosityTexB);
+	// filtering params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// no mipmaps required
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// wrap params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// create texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+		0, GL_RGB, GL_FLOAT, initialPixels);
+
+
+	// allocate texture residualTexB
+	glGenTextures(1, &residualTexB);
+	glBindTexture(GL_TEXTURE_2D, residualTexB);
+	// filtering params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// no mipmaps required
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// wrap params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// create texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,
+		0, GL_RGB, GL_FLOAT, initialPixels);
+
+
+	delete initialPixels;
+}
+
+Quad::~Quad() {
+	glDeleteTextures(1, &radiosityTex);
+	glDeleteTextures(1, &residualTex);
+	glDeleteTextures(1, &radiosityTexB);
+	glDeleteTextures(1, &residualTexB);
 }
 
 
 
-void Quad::close() {
-	glDeleteTextures(1, &currentRadiosityTex);
-	glDeleteTextures(1, &nextRadiosityTex);
-	glDeleteTextures(1, &currentResidualTex);
-	glDeleteTextures(1, &nextResidualTex);
+int Quad::tessellate(Quad *quads, glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft,
+int rows, int columns, glm::vec3 reflectance) {
+
+	glm::vec3 u = (bottomRight-bottomLeft) / (float)columns;
+	glm::vec3 v = (topLeft-bottomLeft) / (float)rows;
+
+	glm::vec3 rowBase = bottomLeft;
+	glm::vec3 base;
+	int k = 0;
+	for (int i=0; i<rows; ++i) {
+		base = rowBase;
+		for (int j=0; j<columns; ++j) {
+			quads[k].setModel(base, base+u, base+v);
+			quads[k].setReflectance(reflectance);
+			k++;
+			base += u;
+		}
+		rowBase += v;
+	}
+	return k;
 }
 
 
-glm::vec3 Quad::getResidualPower() const {
+void Quad::buildWorldVerticesArray(Quad *quads, int numQuads, float *positions, unsigned int *quadIds) {
 	
-	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
+	glm::vec4 posModel0 = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 posModel1 = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 posModel2 = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+	glm::vec4 posModel3 = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
-	glm::vec3 residualAvgIrradiance;
-	glGetTexImage(GL_TEXTURE_2D, RAD_TEX_TOPMIPLEVEL, GL_RGB, GL_FLOAT, 
-			glm::value_ptr(residualAvgIrradiance));
+	int p = 0;
+	int q = 0;
+
+	glm::vec4 posWorld0, posWorld1, posWorld2, posWorld3;
 	
-	return residualAvgIrradiance * (glm::length(u)*glm::length(v));
-}
+	for (int i=0; i<numQuads; i++) {
 
+		posWorld0 = quads[i].getModel() * posModel0;
+		posWorld1 = quads[i].getModel() * posModel1;
+		posWorld2 = quads[i].getModel() * posModel2;
+		posWorld3 = quads[i].getModel() * posModel3;
 
+		positions[p++] = posWorld0.x;
+		positions[p++] = posWorld0.y;
+		positions[p++] = posWorld0.z;
+		quadIds[q++] = i+1;
 
+		positions[p++] = posWorld1.x;
+		positions[p++] = posWorld1.y;
+		positions[p++] = posWorld1.z;
+		quadIds[q++] = i+1;
 
-void Quad::swapTextures() {
+		positions[p++] = posWorld2.x;
+		positions[p++] = posWorld2.y;
+		positions[p++] = posWorld2.z;
+		quadIds[q++] = i+1;
 
-	GLuint temp;
-	
-	temp = currentRadiosityTex;
-	currentRadiosityTex = nextRadiosityTex;
-	nextRadiosityTex = temp;
-
-	temp = currentResidualTex;
-	currentResidualTex = nextResidualTex;
-	nextResidualTex = temp;
-}
-
-
-
-void Quad::selectAsShooter(int shooterDensity) {
-	
-	int shooterLevel = RAD_TEX_TOPMIPLEVEL - shooterDensity;
-	shooterRows = RAD_TEX_WIDTH >> shooterLevel;
-	shooterCols = RAD_TEX_HEIGHT >> shooterLevel;
-
-	currentShooterRow = 0;
-	currentShooterCol = 0;
-
-	// read appropriate mipmap of the residual texture
-
-	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-
-	residualShooterIrradiances.resize(shooterRows*shooterCols);
-	glGetTexImage(GL_TEXTURE_2D, shooterLevel, GL_RGB, GL_FLOAT,
-			glm::value_ptr(residualShooterIrradiances[0]));
-}
-
-
-bool Quad::hasNextShooterCell() const {
-	return (currentShooterRow < shooterRows);
-}
-
-
-void Quad::getNextShooterCellUniforms(glm::mat4 *view_ptr,
-	glm::vec3 *shooterPower_ptr) {
-
-
-	// calculate shooter position
-	glm::vec3 shooterPosition = position;
-	shooterPosition += (currentShooterCol+0.5f) * (u / (float)shooterCols);
-	shooterPosition += (currentShooterRow+0.5f) * (v / (float)shooterRows);
-
-	// calculate normalized u,v for camera axes
-	glm::vec3 right = glm::normalize(v);
-	glm::vec3 up = glm::normalize(u);
-	glm::vec3 lookNeg = -n;
-	
-	// compute view matrix
-	float tR = -glm::dot(shooterPosition, right);
-	float tU = -glm::dot(shooterPosition, up);
-	float tL = -glm::dot(shooterPosition, lookNeg);
-	// constructor order is tranposed 
-	*view_ptr = glm::mat4(	right.x,	up.x,	lookNeg.x,	0.0f,
-							right.y,	up.y,	lookNeg.y,	0.0f,
-							right.z,	up.z,	lookNeg.z,	0.0f,
-							tR,			tU,		tL,			1.0f );
-
-
-	// compute shooter power (area * irradiance)
-	int k = currentShooterRow * shooterCols + currentShooterCol;
-	*shooterPower_ptr = glm::length(u) / (float)shooterCols
-					* glm::length(v) / (float)shooterRows
-					* residualShooterIrradiances[k];
-
-	
-	if (currentShooterCol == shooterCols-1) {
-		currentShooterCol = 0;
-		currentShooterRow++;
-	} else {
-		currentShooterCol++;
+		positions[p++] = posWorld3.x;
+		positions[p++] = posWorld3.y;
+		positions[p++] = posWorld3.z;
+		quadIds[q++] = i+1;
 	}
 }
 
 
-void Quad::clearResidualTex() {
+void Quad::setModel(glm::vec3 bottomLeft, glm::vec3 bottomRight, glm::vec3 topLeft) {
+	
+	glm::vec3 u = bottomRight - bottomLeft;
+	glm::vec3 v = topLeft - bottomLeft;
+	glm::vec3 n = glm::normalize(glm::cross(u, v));
 
-	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-
-	// immutable storage!!
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, RAD_TEX_WIDTH, RAD_TEX_HEIGHT, GL_RGB, GL_FLOAT, zeros);
-
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, RAD_TEX_WIDTH, RAD_TEX_HEIGHT,	// mutable storage
-		//0, GL_RGB, GL_FLOAT, zeros);
-
-	// rebuild mipmaps of residual texture
-	glGenerateMipmap(GL_TEXTURE_2D);
+	// constructor order is tranposed
+	model = glm::mat4(	u.x,	u.y,	u.z,	0.0f,
+						v.x,	v.y,	v.z,	0.0f,
+						n.x,	n.y,	n.z,	0.0f,
+						bottomLeft.x,	bottomLeft.y,	bottomLeft.z,	1.0f
+					);
 }
 
-
-
-void Quad::setU(const glm::vec3 &u) {
-	this->u = u;
-	updateNormalAndModel();
-}
-
-void Quad::setV(const glm::vec3 &v) {
-	this->v = v;
-	updateNormalAndModel();
-}
-
-void Quad::setSubdivideLevel(int subdivideLevel) {
-	this->subdivideLevel = subdivideLevel;
-}
-
-unsigned int Quad::getId() const {
-	return id;
-}
-
-unsigned int Quad::getParentId() const {
-	return parentId;
-}
-
-int Quad::getSubdivideLevel() const {
-	return subdivideLevel;
-}
-
-glm::vec3 Quad::getPosition() const {
-	return position;
-}
-
-glm::vec3 Quad::getU() const {
-	return u;
-}
-
-glm::vec3 Quad::getV() const {
-	return v;
-}
-
-glm::vec3 Quad::getN() const {
-	return n;
+void Quad::setReflectance(glm::vec3 reflectance) {
+	this->reflectance = reflectance;
 }
 
 const glm::mat4 &Quad::getModel() const {
@@ -329,109 +209,5 @@ const glm::mat4 &Quad::getModel() const {
 }
 
 GLuint Quad::getRadiosityTex() const {
-	return currentRadiosityTex;
-}
-
-GLuint Quad::getResidualTex() const {
-	return currentResidualTex;
-}
-
-GLuint Quad::getNextRadiosityTex() const {
-	return nextRadiosityTex;
-}
-
-GLuint Quad::getNextResidualTex() const {
-	return nextResidualTex;
-}
-
-glm::vec3 Quad::getReflectance() const {
-	return reflectance;
-}
-
-int Quad::getCurrentShooterRow() const {
-	return currentShooterRow;
-}
-
-int Quad::getCurrentShooterCol() const {
-	return currentShooterCol;
-}
-
-int Quad::getTexWidth() {
-	return RAD_TEX_WIDTH;
-}
-
-int Quad::getTexHeight() {
-	return RAD_TEX_HEIGHT;
-}
-
-
-
-void Quad::printRadTex() {
-
-	// TEST!!! read back new residual texture
-	printf("\n\n\n\n");
-	glBindTexture(GL_TEXTURE_2D, currentRadiosityTex);
-	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
-	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
-		for (int j=0; j<RAD_TEX_WIDTH; j++) {
-			int base = 3*(i*RAD_TEX_WIDTH+j);
-			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
-		}
-		printf("\n");
-	}
-	delete[] irr;
-}
-
-
-void Quad::printResTex() {
-
-	// TEST!!! read back new residual texture
-	printf("\n\n\n\n");
-	glBindTexture(GL_TEXTURE_2D, currentResidualTex);
-	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
-	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
-		for (int j=0; j<RAD_TEX_WIDTH; j++) {
-			int base = 3*(i*RAD_TEX_WIDTH+j);
-			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
-		}
-		printf("\n");
-	}
-	delete[] irr;
-}
-
-void Quad::printNextRadTex() {
-
-	// TEST!!! read back new residual texture
-	printf("\n\n\n\n");
-	glBindTexture(GL_TEXTURE_2D, nextRadiosityTex);
-	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
-	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
-		for (int j=0; j<RAD_TEX_WIDTH; j++) {
-			int base = 3*(i*RAD_TEX_WIDTH+j);
-			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
-		}
-		printf("\n");
-	}
-	delete[] irr;
-}
-
-
-void Quad::printNextResTex() {
-
-	// TEST!!! read back new residual texture
-	printf("\n\n\n\n");
-	glBindTexture(GL_TEXTURE_2D, nextResidualTex);
-	float *irr = new float [3*RAD_TEX_WIDTH*RAD_TEX_HEIGHT];
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, irr);
-	for (int i=0; i<RAD_TEX_HEIGHT; i++) {
-		for (int j=0; j<RAD_TEX_WIDTH; j++) {
-			int base = 3*(i*RAD_TEX_WIDTH+j);
-			printf(" (%3.3f %3.3f %3.3f)", irr[base], irr[base+1], irr[base+2]);
-		}
-		printf("\n");
-	}
-	delete[] irr;
+	return radiosityTex;
 }

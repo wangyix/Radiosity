@@ -4,14 +4,12 @@
 SceneShaderInterface::SceneShaderInterface()
 	: shaderProgram(0), vertShader(0), fragShader(0),
 	numVertices(0), numIndices(0),
-	vao(0), positionVbo(0), texcoordVbo(0), indexVbo(0),
-	modelViewProj(-1), tex(-1),
-	nearestClampToEdgeSampler(0), trilinearClampToEdgeSampler(0) {
+	positionVbo(0), texcoordVbo(0), indexVbo(0),
+	modelViewProj(-1), tex(-1) {
 }
 
 
-void SceneShaderInterface::init(int numVertices, const float *positions, const float *texcoords,
-		int numIndices, const unsigned short *indices) {
+void SceneShaderInterface::init() {
 	
 	glGetError();
 	
@@ -28,139 +26,83 @@ void SceneShaderInterface::init(int numVertices, const float *positions, const f
 	// get uniform locations
 	modelViewProj = glGetUniformLocation(shaderProgram, "_modelViewProj");
 	tex = glGetUniformLocation(shaderProgram, "_tex");
-	allWhite = glGetUniformLocation(shaderProgram, "_allWhite");
 
-	// assign texture units to tex uniforms
 	glUseProgram(shaderProgram);
+
+	// use texture unit 0 for tex
 	glUniform1i(tex, 0);	
 
-	Utils::exitOnGLError("ERROR: could not create ssi shader program");
+	Utils::exitOnGLError("ERROR: could not create shader program");
 	
 
-
-	this->numVertices = numVertices;
-	this->numIndices = numIndices;
-
-	// set up vao, vbos
-		
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	// allocate vbos
 
 	glGenBuffers(1, &positionVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
 	glGenBuffers(1, &texcoordVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
-	glBufferData(GL_ARRAY_BUFFER, 2*numVertices*sizeof(float), texcoords, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-
 	glGenBuffers(1, &indexVbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
 
-	Utils::exitOnGLError("ERROR: could not set up ssi vbos");
 
-	// set up texture sampler object
-	
-	glGenSamplers(1, &nearestClampToEdgeSampler);
-	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glSamplerParameteri(nearestClampToEdgeSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glGenSamplers(1, &trilinearClampToEdgeSampler);
-	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glSamplerParameteri(trilinearClampToEdgeSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	Utils::exitOnGLError("ERROR: coud not set up ssi sampler object");
-
-	currentSampler = nearestClampToEdgeSampler;
+	Utils::exitOnGLError("ERROR: could not allocate vbos");
 }
 
 
 
-void SceneShaderInterface::setVertices(int numVertices, const float *positions,const float *texcoords,
+
+
+void SceneShaderInterface::setVertices(int numVertices, const float *positions, const float *texcoords,
 		int numIndices, const unsigned short *indices) {
 
 	this->numVertices = numVertices;
 	this->numIndices = numIndices;
 
-	// update vbos
+	// set up vbos
 
-	glBindVertexArray(vao);
+	GLenum ErrorCheckValue = glGetError();
 
 	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
 	glBufferData(GL_ARRAY_BUFFER, 3*numVertices*sizeof(float), positions, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, texcoordVbo);
 	glBufferData(GL_ARRAY_BUFFER, 2*numVertices*sizeof(float), texcoords, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(unsigned short), indices, GL_STATIC_DRAW);
+
+	Utils::exitOnGLError("ERROR: could not set up vbos");
 }
 
 
-void SceneShaderInterface::setAllWhite(bool allWhite) {
 
-	glUseProgram(shaderProgram);
 
-	GLint intValue = allWhite ? 1 : 0;
-	glUniform1i(this->allWhite, intValue);
-}
 
 void SceneShaderInterface::setModelViewProj(const glm::mat4 &modelViewProj) {
 
-	glUseProgram(shaderProgram);
-
-	glUniformMatrix4fv(this->modelViewProj, 1, GL_FALSE, glm::value_ptr(modelViewProj));
-}
-
-
-void SceneShaderInterface::preDraw(int windowWidth, int windowHeight) {
+	//glUseProgram(shaderProgram);
 	
-	// set framebuffer, viewport
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, windowWidth, windowHeight);
-
-	// enable depth test and depth writes
-	glEnable(GL_DEPTH_TEST);
-
-
-	glUseProgram(shaderProgram);
-
-	glBindVertexArray(vao);
-}
-
-
-void SceneShaderInterface::toggleSampler() {
-	if (currentSampler==nearestClampToEdgeSampler)
-		currentSampler = trilinearClampToEdgeSampler;
-	else
-		currentSampler = nearestClampToEdgeSampler;
+	glUniformMatrix4fv(this->modelViewProj, 1, GL_FALSE, glm::value_ptr(modelViewProj));
 }
 
 
 
 void SceneShaderInterface::setTexture(GLuint texture) {
-
-	//glUseProgram(shaderProgram);
-
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glBindSampler(0, currentSampler);
+	glBindSampler(0, 0);	// use texture's sampler state
 }
 
 
 
-void SceneShaderInterface::draw(int baseVertex) {
+void SceneShaderInterface::draw() {
 
-	glDrawElementsBaseVertex(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL, baseVertex);
+	//glUseProgram(shaderProgram);
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVbo);
+
+	glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, NULL);
 }
 
 
@@ -170,9 +112,7 @@ void SceneShaderInterface::close() {
 	
 	glGetError();
 	
-	// destroy vao, vbos
-
-	glDeleteVertexArrays(1, &vao);
+	// destroy vbos
 
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
@@ -184,7 +124,7 @@ void SceneShaderInterface::close() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &indexVbo);
 
-	Utils::exitOnGLError("ERROR: could not destroy ssi vao, vbos");
+	Utils::exitOnGLError("ERROR: could not destroy vbos");
 
 
 	// destroy shaders
@@ -199,12 +139,5 @@ void SceneShaderInterface::close() {
 
 	glDeleteProgram(shaderProgram);
 
-	Utils::exitOnGLError("ERROR: could not destroy ssi shaders");
-
-
-	// destroy sampler
-
-	glDeleteSamplers(1, &nearestClampToEdgeSampler);
-
-	Utils::exitOnGLError("ERROR: could not destroy ssi sampler object");
+	Utils::exitOnGLError("ERROR: could not destroy shaders");
 }

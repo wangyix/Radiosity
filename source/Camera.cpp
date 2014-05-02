@@ -10,6 +10,9 @@ Camera::Camera()
 	updateProj();
 }
 
+Camera::~Camera() {
+}
+
 
 void Camera::setPosition(const glm::vec3 &position) {
 	this->position = position;
@@ -43,18 +46,16 @@ glm::vec3 Camera::moveUp(float dist) {	// z is world up
 }
 
 void Camera::rotateRight(float deg) {
-	float rad = glm::radians(deg);
 	glm::vec3 worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
-	right = glm::rotate(right, -rad, worldUp);
-	lookNeg = glm::rotate(lookNeg, -rad, worldUp);
+	right = glm::rotate(right, -deg, worldUp);
+	lookNeg = glm::rotate(lookNeg, -deg, worldUp);
 	orthonormalize();
 }
 
 void Camera::rotateUp(float deg) {
-	float rad = glm::radians(deg);
-
-	up = glm::rotate(up, rad, right);
-	lookNeg = glm::rotate(lookNeg, rad, right);
+	
+	up = glm::rotate(up, deg, right);
+	lookNeg = glm::rotate(lookNeg, deg, right);
 	
 	// prevent rotating past straight-up or straight-down
 	glm::vec3 worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -88,7 +89,7 @@ void Camera::lookAt(const glm::vec3 &target) {
 
 
 void Camera::updateProj() {
-	proj = glm::perspective(glm::radians(fovy), aspect, nearPlane, farPlane);
+	proj = glm::perspective(fovy, aspect, nearPlane, farPlane);
 }
 
 void Camera::orthonormalize() {

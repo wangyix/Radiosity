@@ -3,14 +3,14 @@
 
 in uint teQuadId;
 
-//layout(location=0) out vec4 fColor;	// FOR TESTING!!!!!!!
-layout(location=0) out uvec4 fId;	// write to render target 1 for now
+layout(location=0) out vec4 fColor;	// FOR TESTING!!!!!!!
+//layout(location=0) out uvec4 fId;	// write to render target 1 for now
 
 void main(void) {
 	
-	fId = uvec4(teQuadId, 0, 0, 0);
+	//fId = uvec4(teQuadId, 0, 0, 0);
 	
-	/*
+	
 	// TEST!!!!
 	switch (teQuadId % 7) {
 	case 0:
@@ -34,5 +34,5 @@ void main(void) {
 	default:
 		fColor = vec4(1,1,1,1);
 	}
-	*/
+	
 }
