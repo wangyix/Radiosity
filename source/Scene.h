@@ -12,7 +12,7 @@
 #include <stdio.h>
 
 
-#define SCENE_FILE "./scenefiles/cornell_box_notess.txt"
+#define DEFAULT_SCENE_FILE "./scenefiles/cornell_box_notess.txt"
 
 #define CONVERGE_RES_THRESHOLD 0.7f	// shoot-iterations stop when all avg residual power is less than this value
 #define SHOOTER_LEVEL 2
@@ -47,7 +47,7 @@ public:
 
 	Scene();
 
-	void init();
+	void init(char *sceneFilepath);
 
 	void onResize(int w, int h);
 

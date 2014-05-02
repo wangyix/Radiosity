@@ -16,7 +16,7 @@ int frameCount = 0;
 int fps = 0;
 
 
-void init( void );
+void init(char *sceneFilepath);
 void reshape( GLFWwindow* window, int w, int h );
 void update(double delta);
 void display( void );
@@ -25,7 +25,7 @@ void close();
 void key_callback( GLFWwindow* window, int key, int scancode, int action, int mods );
 
 
-void init( void )
+void init(char *sceneFilepath)
 {
 	// initialize GLEW
 	GLenum GlewInitResult = glewInit();
@@ -36,7 +36,7 @@ void init( void )
 	
 	fprintf(stdout, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-	scene.init();
+	scene.init(sceneFilepath);
 }
 
 
@@ -83,8 +83,16 @@ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mo
 
 
 
-int main( void )
+int main(int argc, char *argv[])
 {
+	char *sceneFilepath;
+	if (argc<=1) {
+		printf("Using default scene file %s!\n", DEFAULT_SCENE_FILE);
+		sceneFilepath = DEFAULT_SCENE_FILE;
+	} else {
+		sceneFilepath = argv[1];
+	}
+
 	GLFWwindow* window;
 	int width, height;
 
@@ -112,7 +120,7 @@ int main( void )
 
 	glfwSetTime( 0.0 );
 
-	init();
+	init(sceneFilepath);
 
 	
 	// main loop

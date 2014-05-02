@@ -7,10 +7,10 @@ Scene::Scene()
 	wireframe(false), started(false), converged(false) {
 }
 
-void Scene::init() {
+void Scene::init(char *sceneFilepath) {
 	
 	// load scene mesh
-	quadMesh.load(SCENE_FILE);
+	quadMesh.load(sceneFilepath);
 	
 
 	// initialize shader interfaces

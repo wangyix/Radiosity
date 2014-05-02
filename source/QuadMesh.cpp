@@ -13,11 +13,17 @@ QuadMesh::QuadMesh()
 void QuadMesh::load(char* filepath) {
 
 	std::ifstream ifs(filepath);
-	std::string line;
+	if (ifs.fail()) {
+		fprintf(stderr, "file %s could not be opened.\n", filepath);
+		printf("Press enter to exit...");
+		getchar();
+		exit(EXIT_FAILURE);
+	}
 	
-	unload();
+	unload();	// destroy current mesh
 
 	std::vector<glm::vec3> positions;
+	std::string line;
 	
 	// read lines until @ is found, indicating start of first set of vertices
 	while (getNextDataLine(ifs, line)) {
@@ -57,14 +63,14 @@ void QuadMesh::load(char* filepath) {
 				&bl, &br, &tl, &cols, &rows, &rr, &rg, &rb, &numEmitting);
 			
 			// read emittance info (if any), record emittance of each quad
-			std::vector<glm::vec3> emittances = std::vector<glm::vec3>(cols*rows,
+			std::vector<glm::vec3> powers = std::vector<glm::vec3>(cols*rows,
 					glm::vec3(0.0f, 0.0f, 0.0f));
 			int col, row;
 			float er, eg, eb;
 			int linesRead = 0;
 			while (linesRead<numEmitting && getNextDataLine(ifs, line)) {
 				sscanf_s(line.c_str(), "%d %d %f %f %f", &col, &row, &er, &eg, &eb);
-				emittances[col*rows+row] = glm::vec3(er, eg, eb);
+				powers[col*rows+row] = glm::vec3(er, eg, eb);
 				linesRead++;
 			}
 
@@ -83,7 +89,8 @@ void QuadMesh::load(char* filepath) {
 				base = colBase;
 				for (int j=0; j<rows; j++) {
 					quads.resize(quads.size()+1);
-					quads.back().init(base, u, v, reflectance, emittances[i*rows+j]);
+					float area = glm::length(u) * glm::length(v);
+					quads.back().init(base, u, v, reflectance, powers[i*rows+j] / area);
 					base += v;
 				}
 				colBase += u;
