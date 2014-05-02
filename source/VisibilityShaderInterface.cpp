@@ -133,6 +133,9 @@ void VisibilityShaderInterface::setModelView(const glm::mat4 &modelView) {
 
 
 void VisibilityShaderInterface::draw() {
+
+	// disable culling
+	glDisable(GL_CULL_FACE);
 	
 	// set framebuffer, viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);

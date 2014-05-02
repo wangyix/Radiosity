@@ -41,7 +41,6 @@ void Scene::init(char *sceneFilepath) {
 	glDepthFunc(GL_LESS);
 	Utils::exitOnGLError("ERROR: could not set depth testing options");
 
-	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 	Utils::exitOnGLError("ERROR: could not set culling options");

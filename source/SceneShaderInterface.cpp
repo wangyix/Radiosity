@@ -124,6 +124,9 @@ void SceneShaderInterface::setModelViewProj(const glm::mat4 &modelViewProj) {
 
 void SceneShaderInterface::preDraw(int windowWidth, int windowHeight) {
 	
+	// enable culling
+	glEnable(GL_CULL_FACE);
+
 	// set framebuffer, viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, windowWidth, windowHeight);
