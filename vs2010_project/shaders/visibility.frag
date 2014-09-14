@@ -1,9 +1,9 @@
 #version 400
 
 
-in uint teQuadId;
+flat in uint teQuadId;
 
-//layout(location=0) out vec4 fColor;	// FOR TESTING!!!!!!!
+//layout(location=0) out vec4 fColor;	// FOR TESTING: renders quad IDs as colors
 layout(location=0) out uvec4 fId;
 
 void main(void) {
@@ -11,7 +11,7 @@ void main(void) {
 	fId = uvec4(teQuadId, 0, 0, 0);
 	
 	/*
-	// TEST!!!!
+	// FOR TESTING: renders quad IDs as colors
 	switch (teQuadId % 7) {
 	case 0:
 		fColor = vec4(1,0,0,1);

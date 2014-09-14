@@ -10,6 +10,7 @@ in vec2 vTexcoord;
 
 void main(void) {
 	
+	// all-white rendering is used for wireframe mode
 	if (_allWhite) {
 		gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 	} else {

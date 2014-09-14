@@ -86,6 +86,7 @@ void main() {
 
 
 /*
+// OLD VERSION:
 // between vertices 1 and 2
 float level = distance(vPosition[1], vPosition[2]) * max(vTessLevel[1], vTessLevel[2]);
 gl_TessLevelOuter[0] = clamp(level, MIN_TESS_LEVEL, MAX_TESS_LEVEL);
