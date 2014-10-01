@@ -7,6 +7,12 @@ illumination of a diffuse scene.  This particular implementation also
 adaptively subdivides the scene patches based on how dramatically the lighting
 changes within it.
 
+The directory "Radiosity_exe" contains a stand-along executable of the project
+along with sample scenes for input.  "images" contains the output images that
+the program generates from those sample scenes.  "vs2010_project" contains the
+source code and the project files.
+
+
 Radiosity parameters are set as #define macros at the top of Scene.h.
 
 Libraries used:
