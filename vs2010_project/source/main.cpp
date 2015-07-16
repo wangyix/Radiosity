@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
 	glfwWindowHint(GLFW_DEPTH_BITS, 16);
 
-	window = glfwCreateWindow( 800, 600, WINDOW_TITLE, NULL, NULL );
+	window = glfwCreateWindow( 1280, 720, WINDOW_TITLE, NULL, NULL );
 	if (!window)
 	{
 		glfwTerminate();

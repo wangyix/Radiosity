@@ -46,7 +46,9 @@ void Scene::init(char *sceneFilepath) {
 	Utils::exitOnGLError("ERROR: could not set culling options");
 
 	// wireframe mode is initially enabled
-	enableWireframeMode(true);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    wireframe = true;
+    ssi.setAllWhite(true);
 
 	// set camera to initial position
 	camera.setLens(0.1f, 1000.0f, 45.0f);
@@ -60,10 +62,12 @@ void Scene::enableWireframeMode(bool en) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		wireframe = true;
 		ssi.setAllWhite(true);
+        printf("Wireframe mode enabled\n");
 	} else if (wireframe && !en) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		wireframe = false;
 		ssi.setAllWhite(false);
+        printf("Wireframe mode disabled\n");
 	}
 }
 

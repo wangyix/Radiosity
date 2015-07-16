@@ -142,10 +142,13 @@ void SceneShaderInterface::preDraw(int windowWidth, int windowHeight) {
 
 
 void SceneShaderInterface::toggleSampler() {
-	if (currentSampler==nearestClampToEdgeSampler)
-		currentSampler = trilinearClampToEdgeSampler;
-	else
-		currentSampler = nearestClampToEdgeSampler;
+    if (currentSampler == nearestClampToEdgeSampler) {
+        currentSampler = trilinearClampToEdgeSampler;
+        printf("Texture filtering set to trilinear\n");
+    } else {
+        currentSampler = nearestClampToEdgeSampler;
+        printf("Texture filtering set to nearest\n");
+    }
 }
 
 
